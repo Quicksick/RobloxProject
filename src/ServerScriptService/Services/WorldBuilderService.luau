@@ -73,6 +73,45 @@ local function makeBrokenRaft(parent: Instance)
 	makePart(raft, "Bent Mast", Vector3.new(1, 9, 1), Vector3.new(24, 8, -24), Color3.fromRGB(96, 57, 33), Enum.Material.Wood, Vector3.new(0, 0, 12))
 	makePart(raft, "Torn Sail Rag", Vector3.new(0.4, 3, 5), Vector3.new(25.5, 10, -21), Color3.fromRGB(199, 190, 164), Enum.Material.Fabric, Vector3.new(0, 0, 12))
 
+	for index, zOffset in { -4.5, -2.5, -0.5, 1.5, 3.5 } do
+		local plank = makePart(raft, `Repaired Deck Plank {index}`, Vector3.new(18, 0.9, 1.25), Vector3.new(24, 3.35, -24 + zOffset), Color3.fromRGB(128, 82, 45), Enum.Material.WoodPlanks)
+		plank.Transparency = 1
+		plank.CanCollide = false
+	end
+
+	local frontRail = makePart(raft, "Repaired Front Rail", Vector3.new(1, 2, 9), Vector3.new(15, 4.7, -24), Color3.fromRGB(92, 55, 32), Enum.Material.Wood)
+	frontRail.Transparency = 1
+	frontRail.CanCollide = false
+
+	local backRail = makePart(raft, "Repaired Back Rail", Vector3.new(1, 2, 9), Vector3.new(33, 4.7, -24), Color3.fromRGB(92, 55, 32), Enum.Material.Wood)
+	backRail.Transparency = 1
+	backRail.CanCollide = false
+
+	local mast = makePart(raft, "Repaired Mast", Vector3.new(1, 12, 1), Vector3.new(24, 9, -24), Color3.fromRGB(96, 57, 33), Enum.Material.Wood)
+	mast.Transparency = 1
+	mast.CanCollide = false
+
+	local sail = makePart(raft, "Repaired Fibre Sail", Vector3.new(0.5, 9, 8), Vector3.new(25, 11, -20.5), Color3.fromRGB(235, 228, 198), Enum.Material.Fabric)
+	sail.Transparency = 1
+	sail.CanCollide = false
+
+	local seat = Instance.new("VehicleSeat")
+	seat.Name = "Raft Seat"
+	seat.Anchored = true
+	seat.Size = Vector3.new(3, 1, 3)
+	seat.CFrame = CFrame.new(24, 4.4, -26)
+	seat.Color = Color3.fromRGB(82, 52, 31)
+	seat.Material = Enum.Material.Wood
+	seat.Disabled = true
+	seat.Transparency = 1
+	seat.Parent = raft
+
+	local boardZone = makePart(raft, "Board Click Zone", Vector3.new(22, 9, 16), Vector3.new(24, 7, -24), Color3.fromRGB(255, 255, 255), Enum.Material.SmoothPlastic)
+	boardZone.Transparency = 1
+	boardZone.CanCollide = false
+	boardZone.CanTouch = false
+	boardZone.CanQuery = false
+
 	local prompt = Instance.new("ProximityPrompt")
 	prompt.Name = "RepairRaftPrompt"
 	prompt.ActionText = "Repair"
@@ -86,6 +125,23 @@ local function makeBrokenRaft(parent: Instance)
 	clickDetector.Name = "RepairRaftClickDetector"
 	clickDetector.MaxActivationDistance = 24
 	clickDetector.Parent = repairZone
+
+	local boardPrompt = Instance.new("ProximityPrompt")
+	boardPrompt.Name = "BoardRaftPrompt"
+	boardPrompt.ActionText = "Board"
+	boardPrompt.ObjectText = "Repaired Raft"
+	boardPrompt.Enabled = false
+	boardPrompt.HoldDuration = 0
+	boardPrompt.MaxActivationDistance = 18
+	boardPrompt.KeyboardKeyCode = Enum.KeyCode.E
+	boardPrompt.Parent = boardZone
+
+	local boardClickDetector = Instance.new("ClickDetector")
+	boardClickDetector.Name = "BoardRaftClickDetector"
+	boardClickDetector.MaxActivationDistance = 0
+	boardClickDetector.Parent = boardZone
+
+	raft.PrimaryPart = seat
 end
 
 local function makeFirstMateNpc(parent: Instance)

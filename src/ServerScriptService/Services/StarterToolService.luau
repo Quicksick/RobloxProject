@@ -1,4 +1,5 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 local ServerStorage = game:GetService("ServerStorage")
 local Workspace = game:GetService("Workspace")
 
@@ -9,6 +10,8 @@ local StarterToolService = {}
 local WORLD_FOLDER_NAME = "PiratePrototypeWorld"
 local NPC_NAME = "First Mate Finn"
 local TOOL_NAME = "Wooden Axe"
+local RAFT_SPEED = 22
+local RAFT_TURN_SPEED = 70
 
 local function makeWoodenAxe()
 	local tool = Instance.new("Tool")
@@ -181,6 +184,70 @@ local function giveWoodenAxe(player: Player)
 	print(`First Mate Finn gave {player.Name} a Wooden Axe.`)
 end
 
+local function setVisible(part: Instance?, isVisible: boolean, canCollide: boolean?)
+	if not (part and part:IsA("BasePart")) then
+		return
+	end
+
+	part.Transparency = if isVisible then 0 else 1
+	part.CanCollide = canCollide == true
+end
+
+local function showRepairedRaft(raft: Model)
+	for _, partName in {
+		"Broken Plank Left",
+		"Broken Plank Middle",
+		"Broken Plank Right",
+		"Snapped Plank",
+		"Bent Mast",
+		"Torn Sail Rag",
+	} do
+		setVisible(raft:FindFirstChild(partName), false, false)
+	end
+
+	setVisible(raft:FindFirstChild("Repair Spot"), false, false)
+
+	local missingHullGap = raft:FindFirstChild("Missing Hull Gap")
+
+	if missingHullGap and missingHullGap:IsA("BasePart") then
+		missingHullGap.Name = "Repaired Hull Patch"
+		missingHullGap.Color = Color3.fromRGB(128, 82, 45)
+		missingHullGap.Material = Enum.Material.WoodPlanks
+		setVisible(missingHullGap, true, true)
+	end
+
+	for _, child in raft:GetChildren() do
+		if child:IsA("BasePart") and child.Name:match("^Repaired") then
+			setVisible(child, true, true)
+		end
+	end
+
+	local seat = raft:FindFirstChild("Raft Seat")
+
+	if seat and seat:IsA("VehicleSeat") then
+		seat.Disabled = false
+		seat.Transparency = 0
+		seat.CanCollide = true
+	end
+
+	local boardZone = raft:FindFirstChild("Board Click Zone")
+
+	if boardZone and boardZone:IsA("BasePart") then
+		boardZone.CanQuery = true
+	end
+
+	local boardPrompt = boardZone and boardZone:FindFirstChild("BoardRaftPrompt")
+	local boardClickDetector = boardZone and boardZone:FindFirstChild("BoardRaftClickDetector")
+
+	if boardPrompt and boardPrompt:IsA("ProximityPrompt") then
+		boardPrompt.Enabled = true
+	end
+
+	if boardClickDetector and boardClickDetector:IsA("ClickDetector") then
+		boardClickDetector.MaxActivationDistance = 24
+	end
+end
+
 local function repairRaft(player: Player)
 	local wood = getLeaderstat(player, "Wood")
 	local plantFibres = getLeaderstat(player, "PlantFibres")
@@ -210,30 +277,7 @@ local function repairRaft(player: Player)
 	plantFibres.Value -= SharedConfig.RaftRepairPlantFibreCost
 	raft:SetAttribute("Repaired", true)
 
-	local marker = raft:FindFirstChild("Missing Hull Gap")
-
-	if marker and marker:IsA("BasePart") then
-		marker.Color = Color3.fromRGB(145, 95, 55)
-		marker.Material = Enum.Material.WoodPlanks
-		marker.Name = "Repaired Planks"
-		marker.Transparency = 0
-	end
-
-	local repairSpot = raft:FindFirstChild("Repair Spot")
-
-	if repairSpot and repairSpot:IsA("BasePart") then
-		repairSpot.Transparency = 1
-		repairSpot.CanCollide = false
-	end
-
-	local tornSail = raft:FindFirstChild("Torn Sail Rag")
-
-	if tornSail and tornSail:IsA("BasePart") then
-		tornSail.Name = "Repaired Fibre Sail"
-		tornSail.Size = Vector3.new(0.5, 8, 7)
-		tornSail.Color = Color3.fromRGB(235, 228, 198)
-		tornSail.CFrame = CFrame.new(26, 11, -21) * CFrame.Angles(0, 0, math.rad(12))
-	end
+	showRepairedRaft(raft)
 
 	local promptPart = raft:FindFirstChild("Repair Click Zone")
 	local prompt = promptPart and promptPart:FindFirstChild("RepairRaftPrompt")
@@ -249,6 +293,50 @@ local function repairRaft(player: Player)
 	end
 
 	print(`{player.Name} repaired the starter raft with wood and made a sail from plant fibres.`)
+end
+
+local function boardRaft(player: Player, raft: Model)
+	if not raft:GetAttribute("Repaired") then
+		return
+	end
+
+	local seat = raft:FindFirstChild("Raft Seat")
+	local character = player.Character
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+
+	if not (seat and seat:IsA("VehicleSeat") and humanoid) then
+		return
+	end
+
+	seat:Sit(humanoid)
+end
+
+local function startRaftDriving(raft: Model)
+	local seat = raft:WaitForChild("Raft Seat")
+
+	if not seat:IsA("VehicleSeat") then
+		return
+	end
+
+	RunService.Heartbeat:Connect(function(deltaTime)
+		if not raft.Parent or not raft:GetAttribute("Repaired") or not seat.Occupant then
+			return
+		end
+
+		local throttle = seat.Throttle
+		local steer = seat.Steer
+
+		if throttle == 0 and steer == 0 then
+			return
+		end
+
+		local currentPivot = raft:GetPivot()
+		local turn = math.rad(-steer * RAFT_TURN_SPEED * deltaTime)
+		local distance = -throttle * RAFT_SPEED * deltaTime
+		local nextPivot = currentPivot * CFrame.Angles(0, turn, 0) * CFrame.new(0, 0, distance)
+
+		raft:PivotTo(nextPivot)
+	end)
 end
 
 local function harvestShrub(player: Player, shrub: Model)
@@ -300,11 +388,21 @@ function StarterToolService.Start()
 	local raftRepairZone = raft:WaitForChild("Repair Click Zone")
 	local raftPrompt = raftRepairZone:WaitForChild("RepairRaftPrompt")
 	local raftClickDetector = raftRepairZone:WaitForChild("RepairRaftClickDetector")
+	local boardZone = raft:WaitForChild("Board Click Zone")
+	local boardPrompt = boardZone:WaitForChild("BoardRaftPrompt")
+	local boardClickDetector = boardZone:WaitForChild("BoardRaftClickDetector")
 
 	prompt.ActionText = "Get Axe"
 	prompt.Triggered:Connect(giveWoodenAxe)
 	raftPrompt.Triggered:Connect(repairRaft)
 	raftClickDetector.MouseClick:Connect(repairRaft)
+	boardPrompt.Triggered:Connect(function(player)
+		boardRaft(player, raft)
+	end)
+	boardClickDetector.MouseClick:Connect(function(player)
+		boardRaft(player, raft)
+	end)
+	startRaftDriving(raft)
 
 	for _, child in world:GetChildren() do
 		if child:IsA("Model") and child:GetAttribute("IsHarvestableShrub") then
