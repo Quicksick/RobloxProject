@@ -1,6 +1,8 @@
 # RobloxProject
 
-A small Roblox project set up for collaboration with Git, GitHub, Rojo, and Roblox Studio.
+A pirate adventure Roblox project set up for collaboration with Git, GitHub, Rojo, and Roblox Studio.
+
+Players will sail pirate ships to new islands, collect treasure, upgrade weapons, and buy better ships.
 
 ## Getting Started
 
@@ -18,9 +20,26 @@ rojo serve
 ## Project Layout
 
 - `default.project.json` maps local files into Roblox services.
-- `src/ReplicatedStorage` is for shared modules and assets.
-- `src/ServerScriptService` is for server-only scripts.
-- `src/StarterPlayer/StarterPlayerScripts` is for player/client scripts.
+- `src/ReplicatedStorage/Config` stores shared game data for islands, ships, and weapons.
+- `src/ServerScriptService/Services` stores server systems such as player data, ships, and quests.
+- `src/StarterPlayer/StarterPlayerScripts/Controllers` stores player/client scripts.
+
+## First Playable Goal
+
+Build toward this first loop:
+
+1. Spawn at Old Harbor.
+2. Walk to the dock and spawn the Dockside Dinghy.
+3. Sail to Coconut Cay.
+4. Open a treasure chest.
+5. Earn gold.
+6. Spend gold on a better weapon or ship upgrade.
+
+## Starter Game Data
+
+- Islands: Old Harbor, Coconut Cay, Skull Reef.
+- Ships: Dockside Dinghy, Swift Sloop, Storm Brigantine.
+- Weapons: Rusty Cutlass, Boarding Axe, Flintlock Pistol, Captain's Saber.
 
 ## Publish To GitHub
 

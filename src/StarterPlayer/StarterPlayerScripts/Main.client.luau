@@ -1,5 +1,5 @@
-local Players = game:GetService("Players")
+local HudController = require(script.Parent.Controllers.HudController)
+local ShipControls = require(script.Parent.Controllers.ShipControls)
 
-local player = Players.LocalPlayer
-
-print(`Welcome to RobloxProject, {player.Name}!`)
+HudController.Start()
+ShipControls.Start()
