@@ -1,4 +1,9 @@
 local Weapons = {
+	WoodenSword = {
+		DisplayName = "Wooden Sword",
+		Cost = 0,
+		Damage = 6,
+	},
 	RustyCutlass = {
 		DisplayName = "Rusty Cutlass",
 		Cost = 0,

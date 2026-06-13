@@ -51,6 +51,28 @@ local function makeStarterShip(parent: Instance)
 	makePart(ship, "Sail", Vector3.new(1, 9, 8), Vector3.new(24, 14, -20), Color3.fromRGB(240, 234, 211), Enum.Material.Fabric)
 end
 
+local function makeFirstMateNpc(parent: Instance)
+	local npc = Instance.new("Model")
+	npc.Name = "First Mate Finn"
+	npc.Parent = parent
+
+	local body = makePart(npc, "Body", Vector3.new(3, 5, 2), Vector3.new(-12, 8.5, 6), Color3.fromRGB(32, 84, 130), Enum.Material.SmoothPlastic)
+	local head = makePart(npc, "Head", Vector3.new(2.5, 2.5, 2.5), Vector3.new(-12, 12.25, 6), Color3.fromRGB(226, 178, 121), Enum.Material.SmoothPlastic)
+	makePart(npc, "Hat", Vector3.new(4, 0.6, 3), Vector3.new(-12, 13.8, 6), Color3.fromRGB(35, 29, 25), Enum.Material.SmoothPlastic)
+	makePart(npc, "Wooden Sword", Vector3.new(0.5, 5, 0.5), Vector3.new(-9.5, 9, 6), Color3.fromRGB(137, 92, 46), Enum.Material.Wood)
+
+	npc.PrimaryPart = body
+
+	local prompt = Instance.new("ProximityPrompt")
+	prompt.Name = "FirstWeaponPrompt"
+	prompt.ActionText = "Talk"
+	prompt.ObjectText = "First Mate Finn"
+	prompt.HoldDuration = 0
+	prompt.MaxActivationDistance = 12
+	prompt.KeyboardKeyCode = Enum.KeyCode.E
+	prompt.Parent = head
+end
+
 function WorldBuilderService.Start()
 	local existingWorld = Workspace:FindFirstChild(WORLD_FOLDER_NAME)
 
@@ -71,6 +93,7 @@ function WorldBuilderService.Start()
 	makeSpawn(world)
 	makeTreasureChest(world)
 	makeStarterShip(world)
+	makeFirstMateNpc(world)
 
 	print("Built visible pirate prototype world in Workspace.")
 end

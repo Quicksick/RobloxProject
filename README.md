@@ -35,13 +35,15 @@ Build toward this first loop:
 5. Earn gold.
 6. Spend gold on a better weapon or ship upgrade.
 
-Right now, Play mode builds a simple visible prototype world with an ocean, Old Harbor, a dock, Coconut Cay, a treasure chest, and a starter ship placeholder.
+Right now, Play mode builds a simple visible prototype world with an ocean, Old Harbor, a dock, Coconut Cay, a treasure chest, a starter ship placeholder, and First Mate Finn on the starter island.
+
+Run to First Mate Finn and press `E` to talk. He gives the player their first weapon, a Wooden Sword.
 
 ## Starter Game Data
 
 - Islands: Old Harbor, Coconut Cay, Skull Reef.
 - Ships: Dockside Dinghy, Swift Sloop, Storm Brigantine.
-- Weapons: Rusty Cutlass, Boarding Axe, Flintlock Pistol, Captain's Saber.
+- Weapons: Wooden Sword, Rusty Cutlass, Boarding Axe, Flintlock Pistol, Captain's Saber.
 
 ## Publish To GitHub
 

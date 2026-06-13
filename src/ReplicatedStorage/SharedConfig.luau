@@ -3,7 +3,7 @@ local SharedConfig = {
 	Theme = "Pirates",
 	StartingGold = 100,
 	StartingShip = "Dinghy",
-	StartingWeapon = "RustyCutlass",
+	FirstWeapon = "WoodenSword",
 }
 
 return SharedConfig
