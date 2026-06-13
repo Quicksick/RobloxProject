@@ -5,6 +5,7 @@ local SharedConfig = {
 	StartingShip = "Dinghy",
 	FirstTool = "WoodenAxe",
 	RaftRepairWoodCost = 5,
+	RaftRepairPlantFibreCost = 3,
 }
 
 return SharedConfig

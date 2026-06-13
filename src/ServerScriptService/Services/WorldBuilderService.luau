@@ -4,17 +4,21 @@ local WorldBuilderService = {}
 
 local WORLD_FOLDER_NAME = "PiratePrototypeWorld"
 
-local function makePart(parent: Instance, name: string, size: Vector3, position: Vector3, color: Color3, material: Enum.Material)
+local function makePart(parent: Instance, name: string, size: Vector3, position: Vector3, color: Color3, material: Enum.Material, rotation: Vector3?)
 	local part = Instance.new("Part")
 	part.Name = name
 	part.Anchored = true
 	part.Size = size
-	part.Position = position
+	part.CFrame = CFrame.new(position)
 	part.Color = color
 	part.Material = material
 	part.TopSurface = Enum.SurfaceType.Smooth
 	part.BottomSurface = Enum.SurfaceType.Smooth
 	part.Parent = parent
+
+	if rotation then
+		part.CFrame *= CFrame.Angles(math.rad(rotation.X), math.rad(rotation.Y), math.rad(rotation.Z))
+	end
 
 	return part
 end
@@ -46,14 +50,21 @@ local function makeBrokenRaft(parent: Instance)
 	raft:SetAttribute("Repaired", false)
 	raft.Parent = parent
 
-	local base = makePart(raft, "Raft Base", Vector3.new(18, 1, 8), Vector3.new(24, 3, -24), Color3.fromRGB(92, 55, 32), Enum.Material.Wood)
-	makePart(raft, "Missing Plank Marker", Vector3.new(4, 1.2, 8.4), Vector3.new(24, 4, -24), Color3.fromRGB(160, 45, 35), Enum.Material.SmoothPlastic)
-	makePart(raft, "Small Mast", Vector3.new(1, 9, 1), Vector3.new(24, 8, -24), Color3.fromRGB(96, 57, 33), Enum.Material.Wood)
+	local base = makePart(raft, "Repair Spot", Vector3.new(6, 1, 6), Vector3.new(24, 4.2, -24), Color3.fromRGB(160, 45, 35), Enum.Material.SmoothPlastic)
+	base.Transparency = 0.35
+
+	makePart(raft, "Broken Plank Left", Vector3.new(16, 0.8, 1.4), Vector3.new(23, 3, -28), Color3.fromRGB(92, 55, 32), Enum.Material.Wood, Vector3.new(0, 0, -8))
+	makePart(raft, "Broken Plank Middle", Vector3.new(10, 0.8, 1.4), Vector3.new(21, 3.2, -24), Color3.fromRGB(110, 68, 38), Enum.Material.Wood, Vector3.new(0, 0, 13))
+	makePart(raft, "Broken Plank Right", Vector3.new(14, 0.8, 1.4), Vector3.new(25, 3, -20), Color3.fromRGB(92, 55, 32), Enum.Material.Wood, Vector3.new(0, 0, 7))
+	makePart(raft, "Snapped Plank", Vector3.new(6, 0.8, 1.2), Vector3.new(31, 3.6, -25), Color3.fromRGB(80, 47, 29), Enum.Material.Wood, Vector3.new(0, 28, 25))
+	makePart(raft, "Missing Hull Gap", Vector3.new(4, 1.2, 8.4), Vector3.new(24, 4, -24), Color3.fromRGB(150, 35, 28), Enum.Material.SmoothPlastic)
+	makePart(raft, "Bent Mast", Vector3.new(1, 9, 1), Vector3.new(24, 8, -24), Color3.fromRGB(96, 57, 33), Enum.Material.Wood, Vector3.new(0, 0, 12))
+	makePart(raft, "Torn Sail Rag", Vector3.new(0.4, 3, 5), Vector3.new(25.5, 10, -21), Color3.fromRGB(199, 190, 164), Enum.Material.Fabric, Vector3.new(0, 0, 12))
 
 	local prompt = Instance.new("ProximityPrompt")
 	prompt.Name = "RepairRaftPrompt"
 	prompt.ActionText = "Repair"
-	prompt.ObjectText = "Broken Raft"
+	prompt.ObjectText = "Broken Raft: wood + plant fibres"
 	prompt.HoldDuration = 0.5
 	prompt.MaxActivationDistance = 12
 	prompt.KeyboardKeyCode = Enum.KeyCode.E
@@ -74,7 +85,7 @@ local function makeFirstMateNpc(parent: Instance)
 	npc.PrimaryPart = body
 
 	local prompt = Instance.new("ProximityPrompt")
-	prompt.Name = "FirstWeaponPrompt"
+	prompt.Name = "StarterToolPrompt"
 	prompt.ActionText = "Talk"
 	prompt.ObjectText = "First Mate Finn"
 	prompt.HoldDuration = 0
@@ -94,6 +105,27 @@ local function makeTree(parent: Instance, name: string, position: Vector3)
 	local trunk = makePart(tree, "Trunk", Vector3.new(3, 12, 3), position + Vector3.new(0, 6, 0), Color3.fromRGB(103, 69, 37), Enum.Material.Wood)
 	makePart(tree, "Leaves", Vector3.new(11, 9, 11), position + Vector3.new(0, 15, 0), Color3.fromRGB(50, 132, 65), Enum.Material.Grass)
 	tree.PrimaryPart = trunk
+end
+
+local function makeShrub(parent: Instance, name: string, position: Vector3)
+	local shrub = Instance.new("Model")
+	shrub.Name = name
+	shrub:SetAttribute("IsHarvestableShrub", true)
+	shrub:SetAttribute("PlantFibreReward", 1)
+	shrub.Parent = parent
+
+	local leaves = makePart(shrub, "Leaves", Vector3.new(5, 3, 5), position + Vector3.new(0, 1.5, 0), Color3.fromRGB(62, 142, 70), Enum.Material.Grass)
+	makePart(shrub, "Fibre Stems", Vector3.new(3, 2.5, 3), position + Vector3.new(0, 1, 0), Color3.fromRGB(151, 126, 66), Enum.Material.Grass)
+	shrub.PrimaryPart = leaves
+
+	local prompt = Instance.new("ProximityPrompt")
+	prompt.Name = "HarvestShrubPrompt"
+	prompt.ActionText = "Gather Fibres"
+	prompt.ObjectText = name
+	prompt.HoldDuration = 0.4
+	prompt.MaxActivationDistance = 10
+	prompt.KeyboardKeyCode = Enum.KeyCode.E
+	prompt.Parent = leaves
 end
 
 function WorldBuilderService.Start()
@@ -120,6 +152,9 @@ function WorldBuilderService.Start()
 	makeTree(world, "Palm Tree 1", Vector3.new(-20, 6, -8))
 	makeTree(world, "Palm Tree 2", Vector3.new(-18, 6, 16))
 	makeTree(world, "Palm Tree 3", Vector3.new(8, 6, 16))
+	makeShrub(world, "Beach Shrub 1", Vector3.new(-7, 6, -14))
+	makeShrub(world, "Beach Shrub 2", Vector3.new(10, 6, 8))
+	makeShrub(world, "Beach Shrub 3", Vector3.new(-4, 6, 18))
 
 	print("Built visible pirate prototype world in Workspace.")
 end

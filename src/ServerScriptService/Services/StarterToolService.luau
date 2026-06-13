@@ -107,6 +107,14 @@ local function addWood(player: Player, amount: number)
 	end
 end
 
+local function addPlantFibres(player: Player, amount: number)
+	local plantFibres = getLeaderstat(player, "PlantFibres")
+
+	if plantFibres and plantFibres:IsA("IntValue") then
+		plantFibres.Value += amount
+	end
+end
+
 local function chopTree(player: Player)
 	local character = player.Character
 	local rootPart = character and character:FindFirstChild("HumanoidRootPart")
@@ -175,13 +183,19 @@ end
 
 local function repairRaft(player: Player)
 	local wood = getLeaderstat(player, "Wood")
+	local plantFibres = getLeaderstat(player, "PlantFibres")
 
-	if not (wood and wood:IsA("IntValue")) then
+	if not (wood and wood:IsA("IntValue") and plantFibres and plantFibres:IsA("IntValue")) then
 		return
 	end
 
 	if wood.Value < SharedConfig.RaftRepairWoodCost then
 		print(`{player.Name} needs {SharedConfig.RaftRepairWoodCost} wood to repair the raft.`)
+		return
+	end
+
+	if plantFibres.Value < SharedConfig.RaftRepairPlantFibreCost then
+		print(`{player.Name} needs {SharedConfig.RaftRepairPlantFibreCost} plant fibres to make the sail.`)
 		return
 	end
 
@@ -193,17 +207,35 @@ local function repairRaft(player: Player)
 	end
 
 	wood.Value -= SharedConfig.RaftRepairWoodCost
+	plantFibres.Value -= SharedConfig.RaftRepairPlantFibreCost
 	raft:SetAttribute("Repaired", true)
 
-	local marker = raft:FindFirstChild("Missing Plank Marker")
+	local marker = raft:FindFirstChild("Missing Hull Gap")
 
 	if marker and marker:IsA("BasePart") then
 		marker.Color = Color3.fromRGB(145, 95, 55)
 		marker.Material = Enum.Material.WoodPlanks
 		marker.Name = "Repaired Planks"
+		marker.Transparency = 0
 	end
 
-	local promptPart = raft:FindFirstChild("Raft Base")
+	local repairSpot = raft:FindFirstChild("Repair Spot")
+
+	if repairSpot and repairSpot:IsA("BasePart") then
+		repairSpot.Transparency = 1
+		repairSpot.CanCollide = false
+	end
+
+	local tornSail = raft:FindFirstChild("Torn Sail Rag")
+
+	if tornSail and tornSail:IsA("BasePart") then
+		tornSail.Name = "Repaired Fibre Sail"
+		tornSail.Size = Vector3.new(0.5, 8, 7)
+		tornSail.Color = Color3.fromRGB(235, 228, 198)
+		tornSail.CFrame = CFrame.new(26, 11, -21) * CFrame.Angles(0, 0, math.rad(12))
+	end
+
+	local promptPart = raft:FindFirstChild("Repair Spot")
 	local prompt = promptPart and promptPart:FindFirstChild("RepairRaftPrompt")
 
 	if prompt and prompt:IsA("ProximityPrompt") then
@@ -211,21 +243,45 @@ local function repairRaft(player: Player)
 		prompt.Enabled = false
 	end
 
-	print(`{player.Name} repaired the starter raft.`)
+	print(`{player.Name} repaired the starter raft with wood and made a sail from plant fibres.`)
+end
+
+local function harvestShrub(player: Player, shrub: Model)
+	if not shrub:GetAttribute("IsHarvestableShrub") then
+		return
+	end
+
+	local reward = shrub:GetAttribute("PlantFibreReward") or 1
+	addPlantFibres(player, reward)
+	print(`{player.Name} gathered {reward} plant fibre from {shrub.Name}.`)
+	shrub:Destroy()
 end
 
 function StarterToolService.Start()
 	local world = Workspace:WaitForChild(WORLD_FOLDER_NAME)
 	local npc = world:WaitForChild(NPC_NAME)
 	local head = npc:WaitForChild("Head")
-	local prompt = head:WaitForChild("FirstWeaponPrompt")
+	local prompt = head:WaitForChild("StarterToolPrompt")
 	local raft = world:WaitForChild("Broken Starter Raft")
-	local raftBase = raft:WaitForChild("Raft Base")
+	local raftBase = raft:WaitForChild("Repair Spot")
 	local raftPrompt = raftBase:WaitForChild("RepairRaftPrompt")
 
 	prompt.ActionText = "Get Axe"
 	prompt.Triggered:Connect(giveWoodenAxe)
 	raftPrompt.Triggered:Connect(repairRaft)
+
+	for _, child in world:GetChildren() do
+		if child:IsA("Model") and child:GetAttribute("IsHarvestableShrub") then
+			local primaryPart = child.PrimaryPart
+			local shrubPrompt = primaryPart and primaryPart:FindFirstChild("HarvestShrubPrompt")
+
+			if shrubPrompt and shrubPrompt:IsA("ProximityPrompt") then
+				shrubPrompt.Triggered:Connect(function(player)
+					harvestShrub(player, child)
+				end)
+			end
+		end
+	end
 
 	print("First Mate Finn is ready to give new pirates a Wooden Axe.")
 end

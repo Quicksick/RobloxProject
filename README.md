@@ -30,14 +30,14 @@ Build toward this first loop:
 
 1. Spawn at Old Harbor.
 2. Talk to First Mate Finn to get a Wooden Axe.
-3. Equip the axe and chop down trees.
-4. Collect enough wood.
-5. Repair the broken starter raft.
+3. Equip the axe and chop down trees for wood.
+4. Gather plant fibres from shrubs.
+5. Use wood to fix the raft and plant fibres to make the sail.
 6. Use the repaired raft to begin sailing toward nearby islands.
 
-Right now, Play mode builds a simple visible prototype world with an ocean, Old Harbor, a dock, Coconut Cay, a treasure chest, a broken starter raft, trees, and First Mate Finn on the starter island.
+Right now, Play mode builds a simple visible prototype world with an ocean, Old Harbor, a dock, Coconut Cay, a treasure chest, a broken starter raft, trees, shrubs, and First Mate Finn on the starter island.
 
-Run to First Mate Finn and press `E` to get a Wooden Axe. Equip it, click near trees to chop them down, collect wood, then press `E` at the broken raft to repair it.
+Run to First Mate Finn and press `E` to get a Wooden Axe. Equip it, click near trees to chop them down, press `E` near shrubs to gather plant fibres, then press `E` at the broken raft to repair the hull and sail.
 
 ## Starter Game Data
 

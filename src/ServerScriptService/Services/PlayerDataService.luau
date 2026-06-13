@@ -28,6 +28,11 @@ local function createLeaderstats(player: Player)
 	wood.Name = "Wood"
 	wood.Value = 0
 	wood.Parent = leaderstats
+
+	local plantFibres = Instance.new("IntValue")
+	plantFibres.Name = "PlantFibres"
+	plantFibres.Value = 0
+	plantFibres.Parent = leaderstats
 end
 
 function PlayerDataService.Start()

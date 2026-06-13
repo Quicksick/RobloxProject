@@ -9,7 +9,7 @@ function HudController.Start()
 	local player = Players.LocalPlayer
 
 	print(`Ahoy {player.Name}! Welcome to {SharedConfig.GameName}.`)
-	print("First goal: talk to First Mate Finn, get an axe, chop trees, and repair the raft.")
+	print("First goal: get an axe, chop trees for wood, gather plant fibres from shrubs, and repair the raft.")
 end
 
 return HudController
