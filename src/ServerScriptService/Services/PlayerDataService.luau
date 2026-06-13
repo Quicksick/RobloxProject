@@ -20,9 +20,14 @@ local function createLeaderstats(player: Player)
 	gold.Parent = leaderstats
 
 	local weapon = Instance.new("StringValue")
-	weapon.Name = "Weapon"
+	weapon.Name = "Tool"
 	weapon.Value = "None"
 	weapon.Parent = leaderstats
+
+	local wood = Instance.new("IntValue")
+	wood.Name = "Wood"
+	wood.Value = 0
+	wood.Parent = leaderstats
 end
 
 function PlayerDataService.Start()

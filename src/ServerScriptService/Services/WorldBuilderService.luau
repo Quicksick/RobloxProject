@@ -40,15 +40,24 @@ local function makeTreasureChest(parent: Instance)
 	makePart(chest, "Gold", Vector3.new(4, 1, 3), Vector3.new(82, 9.2, -18), Color3.fromRGB(255, 204, 51), Enum.Material.Metal)
 end
 
-local function makeStarterShip(parent: Instance)
-	local ship = Instance.new("Model")
-	ship.Name = "Dockside Dinghy Placeholder"
-	ship.Parent = parent
+local function makeBrokenRaft(parent: Instance)
+	local raft = Instance.new("Model")
+	raft.Name = "Broken Starter Raft"
+	raft:SetAttribute("Repaired", false)
+	raft.Parent = parent
 
-	makePart(ship, "Hull", Vector3.new(18, 3, 8), Vector3.new(24, 3, -24), Color3.fromRGB(92, 55, 32), Enum.Material.Wood)
-	makePart(ship, "Deck", Vector3.new(14, 1, 6), Vector3.new(24, 5, -24), Color3.fromRGB(145, 95, 55), Enum.Material.WoodPlanks)
-	makePart(ship, "Mast", Vector3.new(1, 16, 1), Vector3.new(24, 13, -24), Color3.fromRGB(96, 57, 33), Enum.Material.Wood)
-	makePart(ship, "Sail", Vector3.new(1, 9, 8), Vector3.new(24, 14, -20), Color3.fromRGB(240, 234, 211), Enum.Material.Fabric)
+	local base = makePart(raft, "Raft Base", Vector3.new(18, 1, 8), Vector3.new(24, 3, -24), Color3.fromRGB(92, 55, 32), Enum.Material.Wood)
+	makePart(raft, "Missing Plank Marker", Vector3.new(4, 1.2, 8.4), Vector3.new(24, 4, -24), Color3.fromRGB(160, 45, 35), Enum.Material.SmoothPlastic)
+	makePart(raft, "Small Mast", Vector3.new(1, 9, 1), Vector3.new(24, 8, -24), Color3.fromRGB(96, 57, 33), Enum.Material.Wood)
+
+	local prompt = Instance.new("ProximityPrompt")
+	prompt.Name = "RepairRaftPrompt"
+	prompt.ActionText = "Repair"
+	prompt.ObjectText = "Broken Raft"
+	prompt.HoldDuration = 0.5
+	prompt.MaxActivationDistance = 12
+	prompt.KeyboardKeyCode = Enum.KeyCode.E
+	prompt.Parent = base
 end
 
 local function makeFirstMateNpc(parent: Instance)
@@ -59,7 +68,8 @@ local function makeFirstMateNpc(parent: Instance)
 	local body = makePart(npc, "Body", Vector3.new(3, 5, 2), Vector3.new(-12, 8.5, 6), Color3.fromRGB(32, 84, 130), Enum.Material.SmoothPlastic)
 	local head = makePart(npc, "Head", Vector3.new(2.5, 2.5, 2.5), Vector3.new(-12, 12.25, 6), Color3.fromRGB(226, 178, 121), Enum.Material.SmoothPlastic)
 	makePart(npc, "Hat", Vector3.new(4, 0.6, 3), Vector3.new(-12, 13.8, 6), Color3.fromRGB(35, 29, 25), Enum.Material.SmoothPlastic)
-	makePart(npc, "Wooden Sword", Vector3.new(0.5, 5, 0.5), Vector3.new(-9.5, 9, 6), Color3.fromRGB(137, 92, 46), Enum.Material.Wood)
+	makePart(npc, "Wooden Axe Handle", Vector3.new(0.5, 5, 0.5), Vector3.new(-9.5, 9, 6), Color3.fromRGB(137, 92, 46), Enum.Material.Wood)
+	makePart(npc, "Wooden Axe Head", Vector3.new(2, 1, 0.5), Vector3.new(-9.5, 11.4, 6), Color3.fromRGB(92, 70, 48), Enum.Material.Wood)
 
 	npc.PrimaryPart = body
 
@@ -71,6 +81,19 @@ local function makeFirstMateNpc(parent: Instance)
 	prompt.MaxActivationDistance = 12
 	prompt.KeyboardKeyCode = Enum.KeyCode.E
 	prompt.Parent = head
+end
+
+local function makeTree(parent: Instance, name: string, position: Vector3)
+	local tree = Instance.new("Model")
+	tree.Name = name
+	tree:SetAttribute("IsChoppableTree", true)
+	tree:SetAttribute("HitsRemaining", 3)
+	tree:SetAttribute("WoodReward", 2)
+	tree.Parent = parent
+
+	local trunk = makePart(tree, "Trunk", Vector3.new(3, 12, 3), position + Vector3.new(0, 6, 0), Color3.fromRGB(103, 69, 37), Enum.Material.Wood)
+	makePart(tree, "Leaves", Vector3.new(11, 9, 11), position + Vector3.new(0, 15, 0), Color3.fromRGB(50, 132, 65), Enum.Material.Grass)
+	tree.PrimaryPart = trunk
 end
 
 function WorldBuilderService.Start()
@@ -92,8 +115,11 @@ function WorldBuilderService.Start()
 
 	makeSpawn(world)
 	makeTreasureChest(world)
-	makeStarterShip(world)
+	makeBrokenRaft(world)
 	makeFirstMateNpc(world)
+	makeTree(world, "Palm Tree 1", Vector3.new(-20, 6, -8))
+	makeTree(world, "Palm Tree 2", Vector3.new(-18, 6, 16))
+	makeTree(world, "Palm Tree 3", Vector3.new(8, 6, 16))
 
 	print("Built visible pirate prototype world in Workspace.")
 end

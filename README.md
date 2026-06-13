@@ -29,21 +29,21 @@ rojo serve
 Build toward this first loop:
 
 1. Spawn at Old Harbor.
-2. Walk to the dock and spawn the Dockside Dinghy.
-3. Sail to Coconut Cay.
-4. Open a treasure chest.
-5. Earn gold.
-6. Spend gold on a better weapon or ship upgrade.
+2. Talk to First Mate Finn to get a Wooden Axe.
+3. Equip the axe and chop down trees.
+4. Collect enough wood.
+5. Repair the broken starter raft.
+6. Use the repaired raft to begin sailing toward nearby islands.
 
-Right now, Play mode builds a simple visible prototype world with an ocean, Old Harbor, a dock, Coconut Cay, a treasure chest, a starter ship placeholder, and First Mate Finn on the starter island.
+Right now, Play mode builds a simple visible prototype world with an ocean, Old Harbor, a dock, Coconut Cay, a treasure chest, a broken starter raft, trees, and First Mate Finn on the starter island.
 
-Run to First Mate Finn and press `E` to talk. He gives the player their first weapon, a Wooden Sword.
+Run to First Mate Finn and press `E` to get a Wooden Axe. Equip it, click near trees to chop them down, collect wood, then press `E` at the broken raft to repair it.
 
 ## Starter Game Data
 
 - Islands: Old Harbor, Coconut Cay, Skull Reef.
 - Ships: Dockside Dinghy, Swift Sloop, Storm Brigantine.
-- Weapons: Wooden Sword, Rusty Cutlass, Boarding Axe, Flintlock Pistol, Captain's Saber.
+- Tools/weapons: Wooden Axe, Rusty Cutlass, Boarding Axe, Flintlock Pistol, Captain's Saber.
 
 ## Publish To GitHub
 
