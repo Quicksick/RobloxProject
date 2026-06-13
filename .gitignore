@@ -1,0 +1,19 @@
+# Roblox Studio generated files
+*.rbxl
+*.rbxlx
+*.rbxm
+*.rbxmx
+
+# Rojo build outputs
+build/
+*.place
+
+# Tool caches and local editor files
+.vscode/
+.idea/
+*.tmp
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
