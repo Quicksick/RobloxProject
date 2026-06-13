@@ -44,6 +44,13 @@ local function makeTreasureChest(parent: Instance)
 	makePart(chest, "Gold", Vector3.new(4, 1, 3), Vector3.new(82, 9.2, -18), Color3.fromRGB(255, 204, 51), Enum.Material.Metal)
 end
 
+local function makeOcean(parent: Instance)
+	local terrain = Workspace.Terrain
+
+	terrain:FillBlock(CFrame.new(0, -3, 0), Vector3.new(900, 8, 900), Enum.Material.Water)
+	makePart(parent, "Seabed Prototype", Vector3.new(900, 1, 900), Vector3.new(0, -7.5, 0), Color3.fromRGB(37, 104, 132), Enum.Material.Sand)
+end
+
 local function makeBrokenRaft(parent: Instance)
 	local raft = Instance.new("Model")
 	raft.Name = "Broken Starter Raft"
@@ -52,6 +59,11 @@ local function makeBrokenRaft(parent: Instance)
 
 	local base = makePart(raft, "Repair Spot", Vector3.new(6, 1, 6), Vector3.new(24, 4.2, -24), Color3.fromRGB(160, 45, 35), Enum.Material.SmoothPlastic)
 	base.Transparency = 0.35
+	local repairZone = makePart(raft, "Repair Click Zone", Vector3.new(24, 10, 16), Vector3.new(24, 7, -24), Color3.fromRGB(255, 255, 255), Enum.Material.SmoothPlastic)
+	repairZone.Transparency = 1
+	repairZone.CanCollide = false
+	repairZone.CanTouch = false
+	repairZone.CanQuery = true
 
 	makePart(raft, "Broken Plank Left", Vector3.new(16, 0.8, 1.4), Vector3.new(23, 3, -28), Color3.fromRGB(92, 55, 32), Enum.Material.Wood, Vector3.new(0, 0, -8))
 	makePart(raft, "Broken Plank Middle", Vector3.new(10, 0.8, 1.4), Vector3.new(21, 3.2, -24), Color3.fromRGB(110, 68, 38), Enum.Material.Wood, Vector3.new(0, 0, 13))
@@ -66,9 +78,14 @@ local function makeBrokenRaft(parent: Instance)
 	prompt.ActionText = "Repair"
 	prompt.ObjectText = "Broken Raft: wood + plant fibres"
 	prompt.HoldDuration = 0.5
-	prompt.MaxActivationDistance = 12
+	prompt.MaxActivationDistance = 20
 	prompt.KeyboardKeyCode = Enum.KeyCode.E
-	prompt.Parent = base
+	prompt.Parent = repairZone
+
+	local clickDetector = Instance.new("ClickDetector")
+	clickDetector.Name = "RepairRaftClickDetector"
+	clickDetector.MaxActivationDistance = 24
+	clickDetector.Parent = repairZone
 end
 
 local function makeFirstMateNpc(parent: Instance)
@@ -118,14 +135,25 @@ local function makeShrub(parent: Instance, name: string, position: Vector3)
 	makePart(shrub, "Fibre Stems", Vector3.new(3, 2.5, 3), position + Vector3.new(0, 1, 0), Color3.fromRGB(151, 126, 66), Enum.Material.Grass)
 	shrub.PrimaryPart = leaves
 
+	local harvestZone = makePart(shrub, "Harvest Click Zone", Vector3.new(9, 7, 9), position + Vector3.new(0, 3, 0), Color3.fromRGB(255, 255, 255), Enum.Material.SmoothPlastic)
+	harvestZone.Transparency = 1
+	harvestZone.CanCollide = false
+	harvestZone.CanTouch = false
+	harvestZone.CanQuery = true
+
 	local prompt = Instance.new("ProximityPrompt")
 	prompt.Name = "HarvestShrubPrompt"
 	prompt.ActionText = "Gather Fibres"
 	prompt.ObjectText = name
-	prompt.HoldDuration = 0.4
-	prompt.MaxActivationDistance = 10
+	prompt.HoldDuration = 0
+	prompt.MaxActivationDistance = 16
 	prompt.KeyboardKeyCode = Enum.KeyCode.E
-	prompt.Parent = leaves
+	prompt.Parent = harvestZone
+
+	local clickDetector = Instance.new("ClickDetector")
+	clickDetector.Name = "HarvestShrubClickDetector"
+	clickDetector.MaxActivationDistance = 18
+	clickDetector.Parent = harvestZone
 end
 
 function WorldBuilderService.Start()
@@ -139,7 +167,7 @@ function WorldBuilderService.Start()
 	world.Name = WORLD_FOLDER_NAME
 	world.Parent = Workspace
 
-	makePart(world, "Ocean Prototype", Vector3.new(240, 1, 240), Vector3.new(0, 0, 0), Color3.fromRGB(26, 116, 173), Enum.Material.SmoothPlastic)
+	makeOcean(world)
 	makePart(world, "Old Harbor Island", Vector3.new(54, 6, 46), Vector3.new(0, 3, 0), Color3.fromRGB(219, 194, 130), Enum.Material.Sand)
 	makePart(world, "Old Harbor Dock", Vector3.new(10, 2, 36), Vector3.new(18, 4, -18), Color3.fromRGB(117, 76, 41), Enum.Material.WoodPlanks)
 	makePart(world, "Coconut Cay", Vector3.new(42, 7, 34), Vector3.new(82, 3.5, -18), Color3.fromRGB(207, 184, 115), Enum.Material.Sand)

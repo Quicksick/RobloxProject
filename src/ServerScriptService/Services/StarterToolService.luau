@@ -235,18 +235,27 @@ local function repairRaft(player: Player)
 		tornSail.CFrame = CFrame.new(26, 11, -21) * CFrame.Angles(0, 0, math.rad(12))
 	end
 
-	local promptPart = raft:FindFirstChild("Repair Spot")
+	local promptPart = raft:FindFirstChild("Repair Click Zone")
 	local prompt = promptPart and promptPart:FindFirstChild("RepairRaftPrompt")
+	local clickDetector = promptPart and promptPart:FindFirstChild("RepairRaftClickDetector")
 
 	if prompt and prompt:IsA("ProximityPrompt") then
 		prompt.ActionText = "Repaired"
 		prompt.Enabled = false
 	end
 
+	if clickDetector and clickDetector:IsA("ClickDetector") then
+		clickDetector.MaxActivationDistance = 0
+	end
+
 	print(`{player.Name} repaired the starter raft with wood and made a sail from plant fibres.`)
 end
 
 local function harvestShrub(player: Player, shrub: Model)
+	if not shrub.Parent then
+		return
+	end
+
 	if not shrub:GetAttribute("IsHarvestableShrub") then
 		return
 	end
@@ -257,29 +266,49 @@ local function harvestShrub(player: Player, shrub: Model)
 	shrub:Destroy()
 end
 
+local function connectShrub(shrub: Model)
+	local primaryPart = shrub.PrimaryPart
+	local harvestZone = shrub:FindFirstChild("Harvest Click Zone")
+	local interactionPart = if harvestZone and harvestZone:IsA("BasePart") then harvestZone else primaryPart
+
+	if not interactionPart then
+		return
+	end
+
+	local shrubPrompt = interactionPart:FindFirstChild("HarvestShrubPrompt")
+	local clickDetector = interactionPart:FindFirstChild("HarvestShrubClickDetector")
+
+	if shrubPrompt and shrubPrompt:IsA("ProximityPrompt") then
+		shrubPrompt.Triggered:Connect(function(player)
+			harvestShrub(player, shrub)
+		end)
+	end
+
+	if clickDetector and clickDetector:IsA("ClickDetector") then
+		clickDetector.MouseClick:Connect(function(player)
+			harvestShrub(player, shrub)
+		end)
+	end
+end
+
 function StarterToolService.Start()
 	local world = Workspace:WaitForChild(WORLD_FOLDER_NAME)
 	local npc = world:WaitForChild(NPC_NAME)
 	local head = npc:WaitForChild("Head")
 	local prompt = head:WaitForChild("StarterToolPrompt")
 	local raft = world:WaitForChild("Broken Starter Raft")
-	local raftBase = raft:WaitForChild("Repair Spot")
-	local raftPrompt = raftBase:WaitForChild("RepairRaftPrompt")
+	local raftRepairZone = raft:WaitForChild("Repair Click Zone")
+	local raftPrompt = raftRepairZone:WaitForChild("RepairRaftPrompt")
+	local raftClickDetector = raftRepairZone:WaitForChild("RepairRaftClickDetector")
 
 	prompt.ActionText = "Get Axe"
 	prompt.Triggered:Connect(giveWoodenAxe)
 	raftPrompt.Triggered:Connect(repairRaft)
+	raftClickDetector.MouseClick:Connect(repairRaft)
 
 	for _, child in world:GetChildren() do
 		if child:IsA("Model") and child:GetAttribute("IsHarvestableShrub") then
-			local primaryPart = child.PrimaryPart
-			local shrubPrompt = primaryPart and primaryPart:FindFirstChild("HarvestShrubPrompt")
-
-			if shrubPrompt and shrubPrompt:IsA("ProximityPrompt") then
-				shrubPrompt.Triggered:Connect(function(player)
-					harvestShrub(player, child)
-				end)
-			end
+			connectShrub(child)
 		end
 	end
 
