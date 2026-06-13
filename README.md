@@ -35,6 +35,8 @@ Build toward this first loop:
 5. Earn gold.
 6. Spend gold on a better weapon or ship upgrade.
 
+Right now, Play mode builds a simple visible prototype world with an ocean, Old Harbor, a dock, Coconut Cay, a treasure chest, and a starter ship placeholder.
+
 ## Starter Game Data
 
 - Islands: Old Harbor, Coconut Cay, Skull Reef.
