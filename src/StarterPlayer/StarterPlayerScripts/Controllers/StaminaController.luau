@@ -15,11 +15,12 @@ local function updateBar()
 
 	local maxStamina = player:GetAttribute("MaxSwimStamina") or 100
 	local stamina = player:GetAttribute("SwimStamina") or maxStamina
+	local isInOcean = player:GetAttribute("IsInOcean") == true
 	local percent = math.clamp(stamina / maxStamina, 0, 1)
 
 	fill.Size = UDim2.new(percent, 0, 1, 0)
-	label.Text = `Swim Stamina {math.floor(stamina)} / {maxStamina}`
-	panel.Visible = percent < 0.99
+	label.Text = if stamina <= 0 then "Drowning!" else `Swim Stamina {math.floor(stamina)} / {maxStamina}`
+	panel.Visible = isInOcean or percent < 0.99
 
 	if percent < 0.25 then
 		fill.BackgroundColor3 = Color3.fromRGB(204, 57, 43)
@@ -71,6 +72,7 @@ function StaminaController.Start()
 
 	player:GetAttributeChangedSignal("SwimStamina"):Connect(updateBar)
 	player:GetAttributeChangedSignal("MaxSwimStamina"):Connect(updateBar)
+	player:GetAttributeChangedSignal("IsInOcean"):Connect(updateBar)
 end
 
 return StaminaController

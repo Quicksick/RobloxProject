@@ -45,7 +45,7 @@ The raft has 3 upgrades. Each upgrade costs more wood and plant fibres, reveals 
 
 Press `E` to open or close the inventory. It shows Wood, Plant Fibres, and Raft Level.
 
-The ocean is deep. Falling in makes the player swim, drains Swim Stamina, and starts damaging health once stamina is empty. Death respawns the player back at Old Harbor.
+The ocean is deep. Falling in makes the player swim, drains Swim Stamina, and starts damaging health once stamina is empty. Death respawns the player back at Old Harbor. If Studio was already running, stop Play and start it again after syncing so the generated terrain is rebuilt.
 
 ## Starter Game Data
 

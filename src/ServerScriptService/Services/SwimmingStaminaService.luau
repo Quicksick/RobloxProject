@@ -7,6 +7,7 @@ local MAX_STAMINA = 100
 local SWIM_DRAIN_PER_SECOND = 12
 local LAND_RECOVER_PER_SECOND = 25
 local DROWNING_DAMAGE_PER_SECOND = 18
+local OCEAN_SURFACE_Y = 3
 
 local function setStamina(player: Player, value: number)
 	player:SetAttribute("SwimStamina", math.clamp(value, 0, MAX_STAMINA))
@@ -22,8 +23,23 @@ local function getStamina(player: Player)
 	return MAX_STAMINA
 end
 
-local function isSwimming(humanoid: Humanoid)
-	return humanoid:GetState() == Enum.HumanoidStateType.Swimming
+local function isInOcean(humanoid: Humanoid)
+	local character = humanoid.Parent
+	local rootPart = character and character:FindFirstChild("HumanoidRootPart")
+
+	if humanoid:GetState() == Enum.HumanoidStateType.Swimming then
+		return true
+	end
+
+	if humanoid.FloorMaterial == Enum.Material.Water then
+		return true
+	end
+
+	if rootPart and rootPart:IsA("BasePart") and rootPart.Position.Y < OCEAN_SURFACE_Y then
+		return true
+	end
+
+	return false
 end
 
 local function setupPlayer(player: Player)
@@ -53,7 +69,8 @@ function SwimmingStaminaService.Start()
 
 			local stamina = getStamina(player)
 
-			if isSwimming(humanoid) then
+			if isInOcean(humanoid) then
+				player:SetAttribute("IsInOcean", true)
 				stamina -= SWIM_DRAIN_PER_SECOND * deltaTime
 				setStamina(player, stamina)
 
@@ -61,6 +78,7 @@ function SwimmingStaminaService.Start()
 					humanoid:TakeDamage(DROWNING_DAMAGE_PER_SECOND * deltaTime)
 				end
 			else
+				player:SetAttribute("IsInOcean", false)
 				setStamina(player, stamina + (LAND_RECOVER_PER_SECOND * deltaTime))
 			end
 		end
