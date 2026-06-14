@@ -118,7 +118,7 @@ local function makeBrokenRaft(parent: Instance)
 	prompt.ObjectText = "Broken Raft: wood + plant fibres"
 	prompt.HoldDuration = 0.5
 	prompt.MaxActivationDistance = 20
-	prompt.KeyboardKeyCode = Enum.KeyCode.E
+	prompt.KeyboardKeyCode = Enum.KeyCode.F
 	prompt.Parent = repairZone
 
 	local clickDetector = Instance.new("ClickDetector")
@@ -133,7 +133,7 @@ local function makeBrokenRaft(parent: Instance)
 	boardPrompt.Enabled = false
 	boardPrompt.HoldDuration = 0
 	boardPrompt.MaxActivationDistance = 18
-	boardPrompt.KeyboardKeyCode = Enum.KeyCode.E
+	boardPrompt.KeyboardKeyCode = Enum.KeyCode.F
 	boardPrompt.Parent = boardZone
 
 	local boardClickDetector = Instance.new("ClickDetector")
@@ -163,7 +163,7 @@ local function makeFirstMateNpc(parent: Instance)
 	prompt.ObjectText = "First Mate Finn"
 	prompt.HoldDuration = 0
 	prompt.MaxActivationDistance = 12
-	prompt.KeyboardKeyCode = Enum.KeyCode.E
+	prompt.KeyboardKeyCode = Enum.KeyCode.F
 	prompt.Parent = head
 end
 
@@ -203,7 +203,7 @@ local function makeShrub(parent: Instance, name: string, position: Vector3)
 	prompt.ObjectText = name
 	prompt.HoldDuration = 0
 	prompt.MaxActivationDistance = 16
-	prompt.KeyboardKeyCode = Enum.KeyCode.E
+	prompt.KeyboardKeyCode = Enum.KeyCode.F
 	prompt.Parent = harvestZone
 
 	local clickDetector = Instance.new("ClickDetector")
