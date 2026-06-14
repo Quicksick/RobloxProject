@@ -9,7 +9,7 @@ function HudController.Start()
 	local player = Players.LocalPlayer
 
 	print(`Ahoy {player.Name}! Welcome to {SharedConfig.GameName}.`)
-	print("First goal: repair the raft, click it to board, then use WASD to sail.")
+	print("Goal: repair the raft, sail to resource islands, then upgrade it 3 times.")
 	print("Controls: E opens inventory. F uses nearby prompts.")
 end
 

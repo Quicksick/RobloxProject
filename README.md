@@ -34,12 +34,16 @@ Build toward this first loop:
 4. Click shrubs or press `F` near them to gather plant fibres.
 5. Click the raft or press `F` near it to fix the raft with wood and make the sail from plant fibres.
 6. Click the repaired raft or press `F` near it to board, then use `W`, `A`, `S`, and `D` to sail.
+7. Sail to Driftwood Atoll and Mangrove Isle for more wood and plant fibres.
+8. Use the raft upgrade post to upgrade the raft 3 times until it is fully finished.
 
 Right now, Play mode builds a simple visible prototype world with an ocean, Old Harbor, a dock, Coconut Cay, a treasure chest, a broken starter raft, trees, shrubs, and First Mate Finn on the starter island.
 
 Run to First Mate Finn and press `F` to get a Wooden Axe. Equip it, click near trees to chop them down, click shrubs to gather plant fibres, then click the broken raft to repair the hull and sail. Once repaired, click the raft to sit in it and sail with `W`, `A`, `S`, and `D`.
 
-Press `E` to open or close the inventory. It shows the current Wood and Plant Fibres totals.
+The raft has 3 upgrades. Each upgrade costs more wood and plant fibres, reveals new raft parts, and makes the raft sail faster.
+
+Press `E` to open or close the inventory. It shows Wood, Plant Fibres, and Raft Level.
 
 ## Starter Game Data
 

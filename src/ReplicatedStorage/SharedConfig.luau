@@ -6,6 +6,20 @@ local SharedConfig = {
 	FirstTool = "WoodenAxe",
 	RaftRepairWoodCost = 5,
 	RaftRepairPlantFibreCost = 3,
+	RaftUpgradeCosts = {
+		[1] = {
+			Wood = 8,
+			PlantFibres = 2,
+		},
+		[2] = {
+			Wood = 14,
+			PlantFibres = 4,
+		},
+		[3] = {
+			Wood = 22,
+			PlantFibres = 6,
+		},
+	},
 }
 
 return SharedConfig

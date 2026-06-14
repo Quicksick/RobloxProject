@@ -55,6 +55,7 @@ local function makeBrokenRaft(parent: Instance)
 	local raft = Instance.new("Model")
 	raft.Name = "Broken Starter Raft"
 	raft:SetAttribute("Repaired", false)
+	raft:SetAttribute("UpgradeLevel", 0)
 	raft.Parent = parent
 
 	local base = makePart(raft, "Repair Spot", Vector3.new(6, 1, 6), Vector3.new(24, 4.2, -24), Color3.fromRGB(160, 45, 35), Enum.Material.SmoothPlastic)
@@ -106,11 +107,25 @@ local function makeBrokenRaft(parent: Instance)
 	seat.Transparency = 1
 	seat.Parent = raft
 
-	local boardZone = makePart(raft, "Board Click Zone", Vector3.new(22, 9, 16), Vector3.new(24, 7, -24), Color3.fromRGB(255, 255, 255), Enum.Material.SmoothPlastic)
+	local boardZone = makePart(raft, "Board Click Zone", Vector3.new(14, 8, 10), Vector3.new(22, 7, -27), Color3.fromRGB(255, 255, 255), Enum.Material.SmoothPlastic)
 	boardZone.Transparency = 1
 	boardZone.CanCollide = false
 	boardZone.CanTouch = false
 	boardZone.CanQuery = false
+
+	local upgradeZone = makePart(raft, "Upgrade Click Zone", Vector3.new(9, 8, 9), Vector3.new(34, 7, -18), Color3.fromRGB(255, 255, 255), Enum.Material.SmoothPlastic)
+	upgradeZone.Transparency = 1
+	upgradeZone.CanCollide = false
+	upgradeZone.CanTouch = false
+	upgradeZone.CanQuery = false
+
+	local upgradePost = makePart(raft, "Upgrade Post", Vector3.new(2, 5, 2), Vector3.new(34, 6, -18), Color3.fromRGB(85, 56, 35), Enum.Material.Wood)
+	upgradePost.Transparency = 1
+	upgradePost.CanCollide = false
+
+	local upgradeSign = makePart(raft, "Upgrade Sign", Vector3.new(5, 2.5, 0.5), Vector3.new(34, 9, -18), Color3.fromRGB(130, 88, 45), Enum.Material.WoodPlanks)
+	upgradeSign.Transparency = 1
+	upgradeSign.CanCollide = false
 
 	local prompt = Instance.new("ProximityPrompt")
 	prompt.Name = "RepairRaftPrompt"
@@ -141,6 +156,34 @@ local function makeBrokenRaft(parent: Instance)
 	boardClickDetector.MaxActivationDistance = 0
 	boardClickDetector.Parent = boardZone
 
+	local upgradePrompt = Instance.new("ProximityPrompt")
+	upgradePrompt.Name = "UpgradeRaftPrompt"
+	upgradePrompt.ActionText = "Upgrade"
+	upgradePrompt.ObjectText = "Raft Upgrade"
+	upgradePrompt.Enabled = false
+	upgradePrompt.HoldDuration = 0.5
+	upgradePrompt.MaxActivationDistance = 18
+	upgradePrompt.KeyboardKeyCode = Enum.KeyCode.F
+	upgradePrompt.Parent = upgradeZone
+
+	local upgradeClickDetector = Instance.new("ClickDetector")
+	upgradeClickDetector.Name = "UpgradeRaftClickDetector"
+	upgradeClickDetector.MaxActivationDistance = 0
+	upgradeClickDetector.Parent = upgradeZone
+
+	for index, data in {
+		{ Name = "Upgrade Tier 1 Side Plank Left", Size = Vector3.new(20, 1.2, 1.4), Position = Vector3.new(24, 4.4, -30), Color = Color3.fromRGB(105, 65, 34) },
+		{ Name = "Upgrade Tier 1 Side Plank Right", Size = Vector3.new(20, 1.2, 1.4), Position = Vector3.new(24, 4.4, -18), Color = Color3.fromRGB(105, 65, 34) },
+		{ Name = "Upgrade Tier 2 Front Platform", Size = Vector3.new(7, 1, 10), Position = Vector3.new(13, 3.6, -24), Color = Color3.fromRGB(126, 78, 40) },
+		{ Name = "Upgrade Tier 2 Rear Platform", Size = Vector3.new(7, 1, 10), Position = Vector3.new(35, 3.6, -24), Color = Color3.fromRGB(126, 78, 40) },
+		{ Name = "Upgrade Tier 3 Tall Mast", Size = Vector3.new(1.3, 16, 1.3), Position = Vector3.new(24, 11, -24), Color = Color3.fromRGB(86, 50, 28) },
+		{ Name = "Upgrade Tier 3 Big Sail", Size = Vector3.new(0.6, 13, 11), Position = Vector3.new(25, 13, -19.5), Color = Color3.fromRGB(245, 236, 204) },
+	} do
+		local part = makePart(raft, data.Name, data.Size, data.Position, data.Color, if index == 6 then Enum.Material.Fabric else Enum.Material.WoodPlanks)
+		part.Transparency = 1
+		part.CanCollide = false
+	end
+
 	raft.PrimaryPart = seat
 end
 
@@ -167,12 +210,12 @@ local function makeFirstMateNpc(parent: Instance)
 	prompt.Parent = head
 end
 
-local function makeTree(parent: Instance, name: string, position: Vector3)
+local function makeTree(parent: Instance, name: string, position: Vector3, woodReward: number?)
 	local tree = Instance.new("Model")
 	tree.Name = name
 	tree:SetAttribute("IsChoppableTree", true)
 	tree:SetAttribute("HitsRemaining", 3)
-	tree:SetAttribute("WoodReward", 2)
+	tree:SetAttribute("WoodReward", woodReward or 2)
 	tree.Parent = parent
 
 	local trunk = makePart(tree, "Trunk", Vector3.new(3, 12, 3), position + Vector3.new(0, 6, 0), Color3.fromRGB(103, 69, 37), Enum.Material.Wood)
@@ -180,11 +223,11 @@ local function makeTree(parent: Instance, name: string, position: Vector3)
 	tree.PrimaryPart = trunk
 end
 
-local function makeShrub(parent: Instance, name: string, position: Vector3)
+local function makeShrub(parent: Instance, name: string, position: Vector3, plantFibreReward: number?)
 	local shrub = Instance.new("Model")
 	shrub.Name = name
 	shrub:SetAttribute("IsHarvestableShrub", true)
-	shrub:SetAttribute("PlantFibreReward", 1)
+	shrub:SetAttribute("PlantFibreReward", plantFibreReward or 1)
 	shrub.Parent = parent
 
 	local leaves = makePart(shrub, "Leaves", Vector3.new(5, 3, 5), position + Vector3.new(0, 1.5, 0), Color3.fromRGB(62, 142, 70), Enum.Material.Grass)
@@ -212,6 +255,11 @@ local function makeShrub(parent: Instance, name: string, position: Vector3)
 	clickDetector.Parent = harvestZone
 end
 
+local function makeIsland(parent: Instance, name: string, position: Vector3, size: Vector3)
+	makePart(parent, name, size, position, Color3.fromRGB(207, 184, 115), Enum.Material.Sand)
+	makePart(parent, `{name} Grass Patch`, Vector3.new(size.X - 8, 1, size.Z - 8), position + Vector3.new(0, (size.Y / 2) + 0.55, 0), Color3.fromRGB(73, 134, 76), Enum.Material.Grass)
+end
+
 function WorldBuilderService.Start()
 	local existingWorld = Workspace:FindFirstChild(WORLD_FOLDER_NAME)
 
@@ -228,6 +276,8 @@ function WorldBuilderService.Start()
 	makePart(world, "Old Harbor Dock", Vector3.new(10, 2, 36), Vector3.new(18, 4, -18), Color3.fromRGB(117, 76, 41), Enum.Material.WoodPlanks)
 	makePart(world, "Coconut Cay", Vector3.new(42, 7, 34), Vector3.new(82, 3.5, -18), Color3.fromRGB(207, 184, 115), Enum.Material.Sand)
 	makePart(world, "Sail Here Marker", Vector3.new(8, 10, 8), Vector3.new(82, 11, -18), Color3.fromRGB(42, 164, 92), Enum.Material.Neon)
+	makeIsland(world, "Driftwood Atoll", Vector3.new(-120, 4, -95), Vector3.new(58, 8, 44))
+	makeIsland(world, "Mangrove Isle", Vector3.new(155, 4, 110), Vector3.new(64, 8, 52))
 
 	makeSpawn(world)
 	makeTreasureChest(world)
@@ -239,6 +289,17 @@ function WorldBuilderService.Start()
 	makeShrub(world, "Beach Shrub 1", Vector3.new(-7, 6, -14))
 	makeShrub(world, "Beach Shrub 2", Vector3.new(10, 6, 8))
 	makeShrub(world, "Beach Shrub 3", Vector3.new(-4, 6, 18))
+	makeTree(world, "Driftwood Palm 1", Vector3.new(-135, 8, -104), 5)
+	makeTree(world, "Driftwood Palm 2", Vector3.new(-116, 8, -82), 5)
+	makeTree(world, "Driftwood Palm 3", Vector3.new(-100, 8, -104), 5)
+	makeShrub(world, "Driftwood Shrub 1", Vector3.new(-126, 8, -112), 3)
+	makeShrub(world, "Driftwood Shrub 2", Vector3.new(-108, 8, -90), 3)
+	makeTree(world, "Mangrove Tree 1", Vector3.new(138, 8, 99), 8)
+	makeTree(world, "Mangrove Tree 2", Vector3.new(158, 8, 124), 8)
+	makeTree(world, "Mangrove Tree 3", Vector3.new(176, 8, 100), 8)
+	makeTree(world, "Mangrove Tree 4", Vector3.new(151, 8, 86), 8)
+	makeShrub(world, "Mangrove Shrub 1", Vector3.new(144, 8, 116), 3)
+	makeShrub(world, "Mangrove Shrub 2", Vector3.new(169, 8, 116), 3)
 
 	print("Built visible pirate prototype world in Workspace.")
 end

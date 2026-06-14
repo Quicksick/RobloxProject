@@ -33,6 +33,11 @@ local function createLeaderstats(player: Player)
 	plantFibres.Name = "PlantFibres"
 	plantFibres.Value = 0
 	plantFibres.Parent = leaderstats
+
+	local raftLevel = Instance.new("IntValue")
+	raftLevel.Name = "RaftLevel"
+	raftLevel.Value = 0
+	raftLevel.Parent = leaderstats
 end
 
 function PlayerDataService.Start()

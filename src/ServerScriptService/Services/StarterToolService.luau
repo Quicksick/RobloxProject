@@ -1,3 +1,4 @@
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local ServerStorage = game:GetService("ServerStorage")
@@ -10,7 +11,8 @@ local StarterToolService = {}
 local WORLD_FOLDER_NAME = "PiratePrototypeWorld"
 local NPC_NAME = "First Mate Finn"
 local TOOL_NAME = "Wooden Axe"
-local RAFT_SPEED = 22
+local RAFT_BASE_SPEED = 22
+local RAFT_SPEED_PER_LEVEL = 8
 local RAFT_TURN_SPEED = 70
 
 local function makeWoodenAxe()
@@ -115,6 +117,20 @@ local function addPlantFibres(player: Player, amount: number)
 
 	if plantFibres and plantFibres:IsA("IntValue") then
 		plantFibres.Value += amount
+	end
+end
+
+local function setRaftLevelStat(player: Player, level: number)
+	local raftLevel = getLeaderstat(player, "RaftLevel")
+
+	if raftLevel and raftLevel:IsA("IntValue") then
+		raftLevel.Value = level
+	end
+end
+
+local function setAllRaftLevelStats(level: number)
+	for _, player in Players:GetPlayers() do
+		setRaftLevelStat(player, level)
 	end
 end
 
@@ -246,6 +262,61 @@ local function showRepairedRaft(raft: Model)
 	if boardClickDetector and boardClickDetector:IsA("ClickDetector") then
 		boardClickDetector.MaxActivationDistance = 24
 	end
+
+	local upgradeZone = raft:FindFirstChild("Upgrade Click Zone")
+
+	if upgradeZone and upgradeZone:IsA("BasePart") then
+		upgradeZone.CanQuery = true
+	end
+
+	for _, partName in { "Upgrade Post", "Upgrade Sign" } do
+		setVisible(raft:FindFirstChild(partName), true, true)
+	end
+
+	local upgradePrompt = upgradeZone and upgradeZone:FindFirstChild("UpgradeRaftPrompt")
+	local upgradeClickDetector = upgradeZone and upgradeZone:FindFirstChild("UpgradeRaftClickDetector")
+
+	if upgradePrompt and upgradePrompt:IsA("ProximityPrompt") then
+		upgradePrompt.Enabled = true
+	end
+
+	if upgradeClickDetector and upgradeClickDetector:IsA("ClickDetector") then
+		upgradeClickDetector.MaxActivationDistance = 24
+	end
+end
+
+local function updateUpgradePrompt(raft: Model)
+	local upgradeZone = raft:FindFirstChild("Upgrade Click Zone")
+	local upgradePrompt = upgradeZone and upgradeZone:FindFirstChild("UpgradeRaftPrompt")
+	local level = raft:GetAttribute("UpgradeLevel") or 0
+	local nextLevel = level + 1
+	local cost = SharedConfig.RaftUpgradeCosts[nextLevel]
+
+	if not (upgradePrompt and upgradePrompt:IsA("ProximityPrompt")) then
+		return
+	end
+
+	if not cost then
+		upgradePrompt.ActionText = "Fully Upgraded"
+		upgradePrompt.ObjectText = "Raft Complete"
+		upgradePrompt.Enabled = false
+		return
+	end
+
+	upgradePrompt.ActionText = `Upgrade {nextLevel}/3`
+	upgradePrompt.ObjectText = `{cost.Wood} wood + {cost.PlantFibres} fibres`
+end
+
+local function showRaftUpgradeLevel(raft: Model, level: number)
+	for _, child in raft:GetChildren() do
+		if child:IsA("BasePart") then
+			local tier = child.Name:match("^Upgrade Tier (%d)")
+
+			if tier and tonumber(tier) <= level then
+				setVisible(child, true, true)
+			end
+		end
+	end
 end
 
 local function repairRaft(player: Player)
@@ -278,6 +349,7 @@ local function repairRaft(player: Player)
 	raft:SetAttribute("Repaired", true)
 
 	showRepairedRaft(raft)
+	updateUpgradePrompt(raft)
 
 	local promptPart = raft:FindFirstChild("Repair Click Zone")
 	local prompt = promptPart and promptPart:FindFirstChild("RepairRaftPrompt")
@@ -293,6 +365,53 @@ local function repairRaft(player: Player)
 	end
 
 	print(`{player.Name} repaired the starter raft with wood and made a sail from plant fibres.`)
+end
+
+local function upgradeRaft(player: Player)
+	local world = Workspace:FindFirstChild(WORLD_FOLDER_NAME)
+	local raft = world and world:FindFirstChild("Broken Starter Raft")
+
+	if not raft or not raft:GetAttribute("Repaired") then
+		print("Repair the raft before upgrading it.")
+		return
+	end
+
+	local currentLevel = raft:GetAttribute("UpgradeLevel") or 0
+	local nextLevel = currentLevel + 1
+	local cost = SharedConfig.RaftUpgradeCosts[nextLevel]
+
+	if not cost then
+		print("The raft is fully upgraded.")
+		return
+	end
+
+	local wood = getLeaderstat(player, "Wood")
+	local plantFibres = getLeaderstat(player, "PlantFibres")
+
+	if not (wood and wood:IsA("IntValue") and plantFibres and plantFibres:IsA("IntValue")) then
+		return
+	end
+
+	if wood.Value < cost.Wood or plantFibres.Value < cost.PlantFibres then
+		print(`Upgrade {nextLevel} needs {cost.Wood} wood and {cost.PlantFibres} plant fibres.`)
+		return
+	end
+
+	wood.Value -= cost.Wood
+	plantFibres.Value -= cost.PlantFibres
+	raft:SetAttribute("UpgradeLevel", nextLevel)
+	setAllRaftLevelStats(nextLevel)
+	showRaftUpgradeLevel(raft, nextLevel)
+	updateUpgradePrompt(raft)
+
+	local upgradeZone = raft:FindFirstChild("Upgrade Click Zone")
+	local upgradeClickDetector = upgradeZone and upgradeZone:FindFirstChild("UpgradeRaftClickDetector")
+
+	if nextLevel >= 3 and upgradeClickDetector and upgradeClickDetector:IsA("ClickDetector") then
+		upgradeClickDetector.MaxActivationDistance = 0
+	end
+
+	print(`{player.Name} upgraded the raft to level {nextLevel}.`)
 end
 
 local function boardRaft(player: Player, raft: Model)
@@ -330,9 +449,11 @@ local function startRaftDriving(raft: Model)
 			return
 		end
 
+		local upgradeLevel = raft:GetAttribute("UpgradeLevel") or 0
+		local currentSpeed = RAFT_BASE_SPEED + (upgradeLevel * RAFT_SPEED_PER_LEVEL)
 		local currentPivot = raft:GetPivot()
 		local turn = math.rad(-steer * RAFT_TURN_SPEED * deltaTime)
-		local distance = -throttle * RAFT_SPEED * deltaTime
+		local distance = -throttle * currentSpeed * deltaTime
 		local nextPivot = currentPivot * CFrame.Angles(0, turn, 0) * CFrame.new(0, 0, distance)
 
 		raft:PivotTo(nextPivot)
@@ -391,6 +512,9 @@ function StarterToolService.Start()
 	local boardZone = raft:WaitForChild("Board Click Zone")
 	local boardPrompt = boardZone:WaitForChild("BoardRaftPrompt")
 	local boardClickDetector = boardZone:WaitForChild("BoardRaftClickDetector")
+	local upgradeZone = raft:WaitForChild("Upgrade Click Zone")
+	local upgradePrompt = upgradeZone:WaitForChild("UpgradeRaftPrompt")
+	local upgradeClickDetector = upgradeZone:WaitForChild("UpgradeRaftClickDetector")
 
 	prompt.ActionText = "Get Axe"
 	prompt.Triggered:Connect(giveWoodenAxe)
@@ -402,6 +526,8 @@ function StarterToolService.Start()
 	boardClickDetector.MouseClick:Connect(function(player)
 		boardRaft(player, raft)
 	end)
+	upgradePrompt.Triggered:Connect(upgradeRaft)
+	upgradeClickDetector.MouseClick:Connect(upgradeRaft)
 	startRaftDriving(raft)
 
 	for _, child in world:GetChildren() do

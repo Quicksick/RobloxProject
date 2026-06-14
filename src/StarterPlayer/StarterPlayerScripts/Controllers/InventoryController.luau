@@ -50,7 +50,11 @@ local function updateResource(statName: string)
 	local amountLabel = rows[statName]
 
 	if amountLabel and stat and stat:IsA("IntValue") then
-		amountLabel.Text = tostring(stat.Value)
+		if statName == "RaftLevel" then
+			amountLabel.Text = `{stat.Value}/3`
+		else
+			amountLabel.Text = tostring(stat.Value)
+		end
 	end
 end
 
@@ -89,7 +93,7 @@ local function buildGui()
 
 	panel = Instance.new("Frame")
 	panel.Name = "InventoryPanel"
-	panel.Size = UDim2.fromOffset(300, 220)
+	panel.Size = UDim2.fromOffset(300, 270)
 	panel.Position = UDim2.new(1, -320, 0, 80)
 	panel.BackgroundColor3 = Color3.fromRGB(49, 35, 24)
 	panel.BorderSizePixel = 0
@@ -100,7 +104,7 @@ local function buildGui()
 	title.Font = Enum.Font.GothamBold
 	title.TextSize = 22
 
-	local hint = makeText(panel, "Hint", "Press E to open or close", UDim2.fromOffset(260, 28), UDim2.fromOffset(20, 180))
+	local hint = makeText(panel, "Hint", "Press E to open or close", UDim2.fromOffset(260, 28), UDim2.fromOffset(20, 228))
 	hint.TextColor3 = Color3.fromRGB(204, 189, 160)
 	hint.TextSize = 14
 
@@ -121,12 +125,14 @@ local function buildGui()
 
 	makeResourceRow(panel, "Wood", "Wood", 1)
 	makeResourceRow(panel, "PlantFibres", "Plant Fibres", 2)
+	makeResourceRow(panel, "RaftLevel", "Raft Level", 3)
 end
 
 function InventoryController.Start()
 	buildGui()
 	connectResource("Wood")
 	connectResource("PlantFibres")
+	connectResource("RaftLevel")
 
 	UserInputService.InputBegan:Connect(function(input, gameProcessed)
 		if gameProcessed then
