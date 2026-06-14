@@ -47,8 +47,8 @@ end
 local function makeOcean(parent: Instance)
 	local terrain = Workspace.Terrain
 
-	terrain:FillBlock(CFrame.new(0, -3, 0), Vector3.new(900, 8, 900), Enum.Material.Water)
-	makePart(parent, "Seabed Prototype", Vector3.new(900, 1, 900), Vector3.new(0, -7.5, 0), Color3.fromRGB(37, 104, 132), Enum.Material.Sand)
+	terrain:FillBlock(CFrame.new(0, -32, 0), Vector3.new(900, 64, 900), Enum.Material.Water)
+	makePart(parent, "Deep Seabed Prototype", Vector3.new(900, 1, 900), Vector3.new(0, -65, 0), Color3.fromRGB(37, 104, 132), Enum.Material.Sand)
 end
 
 local function makeBrokenRaft(parent: Instance)

@@ -10,7 +10,7 @@ function HudController.Start()
 
 	print(`Ahoy {player.Name}! Welcome to {SharedConfig.GameName}.`)
 	print("Goal: repair the raft, sail to resource islands, then upgrade it 3 times.")
-	print("Controls: E opens inventory. F uses nearby prompts.")
+	print("Controls: E opens inventory. F uses nearby prompts. Swimming drains stamina.")
 end
 
 return HudController
