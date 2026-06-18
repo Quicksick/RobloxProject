@@ -6,9 +6,12 @@ local SharedConfig = {
 	FirstTool = "WoodenAxe",
 	Map = {
 		UseGeneratedPrototypeWorld = false,
+		EnsureOceanWater = true,
 		GeneratedWorldName = "PiratePrototypeWorld",
 		StudioMapName = "Map",
 		ClearTerrainWhenGenerating = false,
+		OceanCenter = Vector3.new(0, -39, 0),
+		OceanSize = Vector3.new(900, 84, 900),
 	},
 	RaftRepairWoodCost = 5,
 	RaftRepairPlantFibreCost = 3,

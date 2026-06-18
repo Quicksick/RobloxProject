@@ -54,7 +54,7 @@ local function makeOcean(parent: Instance)
 		terrain:Clear()
 	end
 
-	terrain:FillBlock(CFrame.new(0, -39, 0), Vector3.new(900, 84, 900), Enum.Material.Water)
+	terrain:FillBlock(CFrame.new(SharedConfig.Map.OceanCenter), SharedConfig.Map.OceanSize, Enum.Material.Water)
 end
 
 local function makeBrokenRaft(parent: Instance)
@@ -268,6 +268,10 @@ end
 
 function WorldBuilderService.Start()
 	if not SharedConfig.Map.UseGeneratedPrototypeWorld then
+		if SharedConfig.Map.EnsureOceanWater then
+			makeOcean(Workspace)
+		end
+
 		local studioMap = Workspace:FindFirstChild(SharedConfig.Map.StudioMapName)
 
 		if studioMap then
