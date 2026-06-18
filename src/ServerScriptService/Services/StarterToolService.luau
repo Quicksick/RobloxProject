@@ -8,7 +8,8 @@ local SharedConfig = require(ReplicatedStorage:WaitForChild("SharedConfig"))
 
 local StarterToolService = {}
 
-local WORLD_FOLDER_NAME = "PiratePrototypeWorld"
+local WORLD_FOLDER_NAME = SharedConfig.Map.GeneratedWorldName
+local STUDIO_MAP_NAME = SharedConfig.Map.StudioMapName
 local NPC_NAME = "First Mate Finn"
 local TOOL_NAME = "Wooden Axe"
 local RAFT_BASE_SPEED = 22
@@ -76,8 +77,12 @@ local function playerHasTool(player: Player)
 		or (character and character:FindFirstChild(TOOL_NAME) ~= nil)
 end
 
+local function getWorld()
+	return Workspace:FindFirstChild(STUDIO_MAP_NAME) or Workspace:FindFirstChild(WORLD_FOLDER_NAME)
+end
+
 local function findNearestTree(position: Vector3)
-	local world = Workspace:FindFirstChild(WORLD_FOLDER_NAME)
+	local world = getWorld()
 
 	if not world then
 		return nil
@@ -337,7 +342,7 @@ local function repairRaft(player: Player)
 		return
 	end
 
-	local world = Workspace:FindFirstChild(WORLD_FOLDER_NAME)
+	local world = getWorld()
 	local raft = world and world:FindFirstChild("Broken Starter Raft")
 
 	if not raft or raft:GetAttribute("Repaired") then
@@ -368,7 +373,7 @@ local function repairRaft(player: Player)
 end
 
 local function upgradeRaft(player: Player)
-	local world = Workspace:FindFirstChild(WORLD_FOLDER_NAME)
+	local world = getWorld()
 	local raft = world and world:FindFirstChild("Broken Starter Raft")
 
 	if not raft or not raft:GetAttribute("Repaired") then
@@ -501,11 +506,29 @@ local function connectShrub(shrub: Model)
 end
 
 function StarterToolService.Start()
-	local world = Workspace:WaitForChild(WORLD_FOLDER_NAME)
-	local npc = world:WaitForChild(NPC_NAME)
+	local world = getWorld()
+
+	if not world then
+		warn(`StarterToolService did not find Workspace.{STUDIO_MAP_NAME} or Workspace.{WORLD_FOLDER_NAME}. Map interactions are disabled until the map exists.`)
+		return
+	end
+
+	local npc = world:FindFirstChild(NPC_NAME)
+
+	if not npc then
+		warn(`StarterToolService did not find {NPC_NAME}. Add the NPC model to your Studio map to enable the starter axe interaction.`)
+		return
+	end
+
 	local head = npc:WaitForChild("Head")
 	local prompt = head:WaitForChild("StarterToolPrompt")
-	local raft = world:WaitForChild("Broken Starter Raft")
+	local raft = world:FindFirstChild("Broken Starter Raft")
+
+	if not raft then
+		warn("StarterToolService did not find Broken Starter Raft. Raft repair, boarding, and upgrades are disabled until the raft model exists.")
+		return
+	end
+
 	local raftRepairZone = raft:WaitForChild("Repair Click Zone")
 	local raftPrompt = raftRepairZone:WaitForChild("RepairRaftPrompt")
 	local raftClickDetector = raftRepairZone:WaitForChild("RepairRaftClickDetector")

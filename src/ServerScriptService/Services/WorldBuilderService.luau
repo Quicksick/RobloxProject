@@ -1,8 +1,11 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
+
+local SharedConfig = require(ReplicatedStorage:WaitForChild("SharedConfig"))
 
 local WorldBuilderService = {}
 
-local WORLD_FOLDER_NAME = "PiratePrototypeWorld"
+local WORLD_FOLDER_NAME = SharedConfig.Map.GeneratedWorldName
 
 local function makePart(parent: Instance, name: string, size: Vector3, position: Vector3, color: Color3, material: Enum.Material, rotation: Vector3?)
 	local part = Instance.new("Part")
@@ -47,7 +50,10 @@ end
 local function makeOcean(parent: Instance)
 	local terrain = Workspace.Terrain
 
-	terrain:Clear()
+	if SharedConfig.Map.ClearTerrainWhenGenerating then
+		terrain:Clear()
+	end
+
 	terrain:FillBlock(CFrame.new(0, -39, 0), Vector3.new(900, 84, 900), Enum.Material.Water)
 end
 
@@ -261,6 +267,18 @@ local function makeIsland(parent: Instance, name: string, position: Vector3, siz
 end
 
 function WorldBuilderService.Start()
+	if not SharedConfig.Map.UseGeneratedPrototypeWorld then
+		local studioMap = Workspace:FindFirstChild(SharedConfig.Map.StudioMapName)
+
+		if studioMap then
+			print(`Using Studio-authored map: Workspace.{SharedConfig.Map.StudioMapName}`)
+		else
+			warn(`Generated prototype world is disabled. Create Workspace.{SharedConfig.Map.StudioMapName} in Studio, or set UseGeneratedPrototypeWorld to true in SharedConfig.`)
+		end
+
+		return
+	end
+
 	local existingWorld = Workspace:FindFirstChild(WORLD_FOLDER_NAME)
 
 	if existingWorld then

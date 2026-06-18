@@ -4,6 +4,12 @@ local SharedConfig = {
 	StartingGold = 100,
 	StartingShip = "Dinghy",
 	FirstTool = "WoodenAxe",
+	Map = {
+		UseGeneratedPrototypeWorld = false,
+		GeneratedWorldName = "PiratePrototypeWorld",
+		StudioMapName = "Map",
+		ClearTerrainWhenGenerating = false,
+	},
 	RaftRepairWoodCost = 5,
 	RaftRepairPlantFibreCost = 3,
 	RaftUpgradeCosts = {

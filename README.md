@@ -24,6 +24,36 @@ rojo serve
 - `src/ServerScriptService/Services` stores server systems such as player data, ships, and quests.
 - `src/StarterPlayer/StarterPlayerScripts/Controllers` stores player/client scripts.
 
+## Studio Map Workflow
+
+Roblox Studio should own the map layout. Rojo/Codex should own the code.
+
+By default, `SharedConfig.Map.UseGeneratedPrototypeWorld` is `false`, so the code will not clear terrain or rebuild the prototype world. The gameplay systems look for a hand-built map at:
+
+```text
+Workspace
+  Map
+```
+
+To use the current generated prototype as a starting point:
+
+1. Temporarily set `UseGeneratedPrototypeWorld = true` in `src/ReplicatedStorage/SharedConfig.luau`.
+2. Rojo sync and press Play in Studio.
+3. In Explorer, select `Workspace.PiratePrototypeWorld` and copy it.
+4. Stop Play.
+5. Paste it into `Workspace`.
+6. Rename it to `Map`.
+7. Set `UseGeneratedPrototypeWorld = false` again.
+8. Build and move things by hand in Studio from now on.
+
+Keep these names/attributes for code hooks:
+
+- NPC model: `First Mate Finn`, with `Head.StarterToolPrompt`.
+- Raft model: `Broken Starter Raft`.
+- Tree models: set attribute `IsChoppableTree = true`, with a PrimaryPart and optional `WoodReward`.
+- Shrub models: set attribute `IsHarvestableShrub = true`, with a PrimaryPart and optional `PlantFibreReward`.
+- Raft interaction parts/prompts can be moved with the raft, but keep their existing names.
+
 ## First Playable Goal
 
 Build toward this first loop:
