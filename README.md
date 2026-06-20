@@ -68,6 +68,12 @@ tools/studio/generate_mountain_world.luau
 
 Run it in Roblox Studio's Command Bar while not in Play mode. It creates real Terrain in edit mode, so you can save/publish it normally. It also creates `Workspace.GeneratedWorldMarkers` to show suggested island centers; you can delete those markers after layout work.
 
+If Studio has trouble with the multi-line paste, use the single-line Command Bar version instead:
+
+```text
+tools/studio/generate_mountain_world_command_bar.luau
+```
+
 This script clears existing Terrain by default. It does not delete your `Workspace.Map` models, but run it before doing detailed Terrain sculpting.
 
 ## First Playable Goal
