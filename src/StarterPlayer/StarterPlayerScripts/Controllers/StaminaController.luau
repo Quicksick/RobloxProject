@@ -1,4 +1,5 @@
 local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
 
 local StaminaController = {}
 
@@ -28,6 +29,19 @@ local function updateBar()
 		fill.BackgroundColor3 = Color3.fromRGB(224, 151, 45)
 	else
 		fill.BackgroundColor3 = Color3.fromRGB(57, 158, 219)
+	end
+end
+
+local function blockOceanJump()
+	if player:GetAttribute("IsInOcean") ~= true then
+		return
+	end
+
+	local character = player.Character
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+
+	if humanoid then
+		humanoid.Jump = false
 	end
 end
 
@@ -73,6 +87,7 @@ function StaminaController.Start()
 	player:GetAttributeChangedSignal("SwimStamina"):Connect(updateBar)
 	player:GetAttributeChangedSignal("MaxSwimStamina"):Connect(updateBar)
 	player:GetAttributeChangedSignal("IsInOcean"):Connect(updateBar)
+	UserInputService.JumpRequest:Connect(blockOceanJump)
 end
 
 return StaminaController
