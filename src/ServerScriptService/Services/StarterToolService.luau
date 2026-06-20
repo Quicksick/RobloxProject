@@ -18,6 +18,7 @@ local RAFT_SPEED_PER_LEVEL = 8
 local RAFT_TURN_SPEED = 70
 local TREE_MAX_HITS = 4
 local TREE_RESPAWN_SECONDS = 25
+local TREE_CHOP_RANGE = 10
 local LOG_PICKUP_DISTANCE = 3.5
 local LOG_ATTRACTION_DISTANCE = 14
 local LOG_ATTRACTION_SPEED = 9
@@ -118,6 +119,16 @@ local function findGroundY(position: Vector3, ignore: { Instance }?)
 	return position.Y
 end
 
+local function getDistanceToModelFootprint(model: Model, position: Vector3)
+	local boundingCFrame, boundingSize = model:GetBoundingBox()
+	local relativePosition = boundingCFrame:PointToObjectSpace(position)
+	local halfSize = boundingSize / 2
+	local outsideX = math.max(math.abs(relativePosition.X) - halfSize.X, 0)
+	local outsideZ = math.max(math.abs(relativePosition.Z) - halfSize.Z, 0)
+
+	return Vector2.new(outsideX, outsideZ).Magnitude
+end
+
 local function findNearestTree(position: Vector3)
 	local world = getWorld()
 
@@ -126,7 +137,7 @@ local function findNearestTree(position: Vector3)
 	end
 
 	local nearestTree = nil
-	local nearestDistance = 14
+	local nearestDistance = TREE_CHOP_RANGE
 
 	for _, child in world:GetDescendants() do
 		if child:IsA("Model") and child:GetAttribute("IsChoppableTree") then
@@ -134,7 +145,7 @@ local function findNearestTree(position: Vector3)
 
 			if primaryPart then
 				child.PrimaryPart = primaryPart
-				local distance = (primaryPart.Position - position).Magnitude
+				local distance = getDistanceToModelFootprint(child, position)
 
 				if distance < nearestDistance then
 					nearestTree = child
