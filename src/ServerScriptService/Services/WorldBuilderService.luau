@@ -232,7 +232,7 @@ local function makeTree(parent: Instance, name: string, position: Vector3, woodR
 	local tree = Instance.new("Model")
 	tree.Name = name
 	tree:SetAttribute("IsChoppableTree", true)
-	tree:SetAttribute("HitsRemaining", 3)
+	tree:SetAttribute("HitsRemaining", 4)
 	tree:SetAttribute("WoodReward", woodReward or 2)
 	tree.Parent = parent
 

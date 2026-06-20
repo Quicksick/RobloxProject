@@ -2,6 +2,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local ServerStorage = game:GetService("ServerStorage")
+local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
 
 local SharedConfig = require(ReplicatedStorage:WaitForChild("SharedConfig"))
@@ -15,6 +16,14 @@ local TOOL_NAME = "Wooden Axe"
 local RAFT_BASE_SPEED = 22
 local RAFT_SPEED_PER_LEVEL = 8
 local RAFT_TURN_SPEED = 70
+local TREE_MAX_HITS = 4
+local TREE_RESPAWN_SECONDS = 25
+local LOG_PICKUP_DISTANCE = 9
+local LOG_ATTRACTION_DISTANCE = 18
+local LOG_ATTRACTION_SPEED = 24
+
+local treeTemplatesByName = {}
+local activeLogs = {}
 
 local function makeWoodenAxe()
 	local tool = Instance.new("Tool")
@@ -81,6 +90,20 @@ local function getWorld()
 	return Workspace:FindFirstChild(STUDIO_MAP_NAME) or Workspace:FindFirstChild(WORLD_FOLDER_NAME)
 end
 
+local function findFirstBasePart(instance: Instance)
+	if instance:IsA("BasePart") then
+		return instance
+	end
+
+	for _, descendant in instance:GetDescendants() do
+		if descendant:IsA("BasePart") then
+			return descendant
+		end
+	end
+
+	return nil
+end
+
 local function findNearestTree(position: Vector3)
 	local world = getWorld()
 
@@ -91,11 +114,12 @@ local function findNearestTree(position: Vector3)
 	local nearestTree = nil
 	local nearestDistance = 14
 
-	for _, child in world:GetChildren() do
+	for _, child in world:GetDescendants() do
 		if child:IsA("Model") and child:GetAttribute("IsChoppableTree") then
-			local primaryPart = child.PrimaryPart
+			local primaryPart = child.PrimaryPart or findFirstBasePart(child)
 
 			if primaryPart then
+				child.PrimaryPart = primaryPart
 				local distance = (primaryPart.Position - position).Magnitude
 
 				if distance < nearestDistance then
@@ -107,6 +131,16 @@ local function findNearestTree(position: Vector3)
 	end
 
 	return nearestTree
+end
+
+local function rememberTreeTemplate(tree: Model)
+	if treeTemplatesByName[tree.Name] then
+		return
+	end
+
+	local clone = tree:Clone()
+	clone.Parent = nil
+	treeTemplatesByName[tree.Name] = clone
 end
 
 local function addWood(player: Player, amount: number)
@@ -139,6 +173,198 @@ local function setAllRaftLevelStats(level: number)
 	end
 end
 
+local function setTreePartsVisible(tree: Model, isVisible: boolean, canCollide: boolean)
+	for _, descendant in tree:GetDescendants() do
+		if descendant:IsA("BasePart") then
+			descendant.Transparency = if isVisible then 0 else 1
+			descendant.CanCollide = canCollide
+			descendant.CanTouch = canCollide
+			descendant.CanQuery = canCollide
+		end
+	end
+end
+
+local function shakeTree(tree: Model)
+	local pivot = tree:GetPivot()
+
+	task.spawn(function()
+		for index = 1, 2 do
+			local direction = if index == 1 then 1 else -1
+			tree:PivotTo(pivot * CFrame.Angles(0, 0, math.rad(2.5 * direction)))
+			task.wait(0.05)
+		end
+
+		if tree.Parent then
+			tree:PivotTo(pivot)
+		end
+	end)
+end
+
+local function makeStump(parent: Instance, tree: Model)
+	local primaryPart = tree.PrimaryPart or findFirstBasePart(tree)
+
+	if not primaryPart then
+		return nil
+	end
+
+	local stump = Instance.new("Part")
+	stump.Name = `{tree.Name} Stump`
+	stump.Anchored = true
+	stump.Size = Vector3.new(3, 2, 3)
+	stump.CFrame = CFrame.new(primaryPart.Position.X, primaryPart.Position.Y - 5, primaryPart.Position.Z)
+	stump.Color = Color3.fromRGB(104, 68, 38)
+	stump.Material = Enum.Material.Wood
+	stump.Parent = parent
+
+	return stump
+end
+
+local function spawnWoodLog(parent: Instance, position: Vector3, amount: number)
+	local log = Instance.new("Part")
+	log.Name = "Wood Log"
+	log.Anchored = true
+	log.Size = Vector3.new(2.4, 1, 1)
+	log.CFrame = CFrame.new(position) * CFrame.Angles(0, math.rad(math.random(0, 180)), math.rad(90))
+	log.Color = Color3.fromRGB(126, 80, 43)
+	log.Material = Enum.Material.Wood
+	log:SetAttribute("WoodAmount", amount)
+	log.Parent = parent
+
+	table.insert(activeLogs, log)
+end
+
+local function removeActiveLog(log: BasePart)
+	for index = #activeLogs, 1, -1 do
+		if activeLogs[index] == log then
+			table.remove(activeLogs, index)
+			return
+		end
+	end
+end
+
+local function findNearestPlayerToLog(log: BasePart)
+	local nearestPlayer = nil
+	local nearestRoot = nil
+	local nearestDistance = LOG_ATTRACTION_DISTANCE
+
+	for _, player in Players:GetPlayers() do
+		local character = player.Character
+		local rootPart = character and character:FindFirstChild("HumanoidRootPart")
+		local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+
+		if rootPart and rootPart:IsA("BasePart") and humanoid and humanoid.Health > 0 then
+			local distance = (rootPart.Position - log.Position).Magnitude
+
+			if distance < nearestDistance then
+				nearestPlayer = player
+				nearestRoot = rootPart
+				nearestDistance = distance
+			end
+		end
+	end
+
+	return nearestPlayer, nearestRoot, nearestDistance
+end
+
+local function updateWoodLogs(deltaTime: number)
+	for index = #activeLogs, 1, -1 do
+		local log = activeLogs[index]
+
+		if not log.Parent then
+			table.remove(activeLogs, index)
+			continue
+		end
+
+		local player, rootPart, distance = findNearestPlayerToLog(log)
+
+		if player and rootPart then
+			if distance <= LOG_PICKUP_DISTANCE then
+				addWood(player, log:GetAttribute("WoodAmount") or 1)
+				removeActiveLog(log)
+				log:Destroy()
+			else
+				local direction = (rootPart.Position - log.Position).Unit
+				local step = math.min(LOG_ATTRACTION_SPEED * deltaTime, distance - LOG_PICKUP_DISTANCE)
+				log.CFrame = log.CFrame + (direction * step)
+			end
+		end
+	end
+end
+
+local function spawnWoodLogs(tree: Model, reward: number)
+	local primaryPart = tree.PrimaryPart or findFirstBasePart(tree)
+	local parent = tree.Parent
+
+	if not (primaryPart and parent) then
+		return
+	end
+
+	for index = 1, reward do
+		local angle = (math.pi * 2 / math.max(reward, 1)) * index
+		local offset = Vector3.new(math.cos(angle) * 4, 1.5, math.sin(angle) * 4)
+		spawnWoodLog(parent, primaryPart.Position + offset, 1)
+	end
+end
+
+local function regrowTree(parent: Instance, treeName: string, stump: Instance?)
+	local template = treeTemplatesByName[treeName]
+
+	task.delay(TREE_RESPAWN_SECONDS, function()
+		if stump then
+			stump:Destroy()
+		end
+
+		if template and parent.Parent then
+			local newTree = template:Clone()
+			newTree:SetAttribute("HitsRemaining", TREE_MAX_HITS)
+			newTree:SetAttribute("IsFalling", false)
+			setTreePartsVisible(newTree, true, true)
+			newTree.Parent = parent
+		end
+	end)
+end
+
+local function toppleTree(tree: Model)
+	if tree:GetAttribute("IsFalling") then
+		return
+	end
+
+	tree:SetAttribute("IsFalling", true)
+	rememberTreeTemplate(tree)
+
+	local parent = tree.Parent
+	local treeName = tree.Name
+	local reward = tree:GetAttribute("WoodReward") or 1
+	local stump = if parent then makeStump(parent, tree) else nil
+	local startPivot = tree:GetPivot()
+	local fallPivot = startPivot * CFrame.Angles(math.rad(78), 0, math.rad(math.random(-12, 12))) * CFrame.new(0, -3, -8)
+	local pivotValue = Instance.new("CFrameValue")
+	pivotValue.Value = startPivot
+
+	local connection = pivotValue.Changed:Connect(function(value)
+		if tree.Parent then
+			tree:PivotTo(value)
+		end
+	end)
+
+	local tween = TweenService:Create(pivotValue, TweenInfo.new(0.75, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+		Value = fallPivot,
+	})
+
+	tween:Play()
+	tween.Completed:Connect(function()
+		connection:Disconnect()
+		pivotValue:Destroy()
+		spawnWoodLogs(tree, reward)
+		setTreePartsVisible(tree, false, false)
+		tree.Parent = nil
+
+		if parent then
+			regrowTree(parent, treeName, stump)
+		end
+	end)
+end
+
 local function chopTree(player: Player)
 	local character = player.Character
 	local rootPart = character and character:FindFirstChild("HumanoidRootPart")
@@ -154,19 +380,24 @@ local function chopTree(player: Player)
 		return
 	end
 
-	local hitsRemaining = tree:GetAttribute("HitsRemaining") or 1
+	if tree:GetAttribute("IsFalling") then
+		return
+	end
+
+	rememberTreeTemplate(tree)
+
+	local hitsRemaining = tree:GetAttribute("HitsRemaining") or TREE_MAX_HITS
 	hitsRemaining -= 1
 	tree:SetAttribute("HitsRemaining", hitsRemaining)
+	shakeTree(tree)
 
 	if hitsRemaining > 0 then
 		print(`{player.Name} chopped {tree.Name}. {hitsRemaining} hits left.`)
 		return
 	end
 
-	local reward = tree:GetAttribute("WoodReward") or 1
-	addWood(player, reward)
-	print(`{player.Name} chopped down {tree.Name} and collected {reward} wood.`)
-	tree:Destroy()
+	print(`{player.Name} chopped down {tree.Name}.`)
+	toppleTree(tree)
 end
 
 local function connectAxe(tool: Tool, player: Player)
@@ -513,45 +744,47 @@ function StarterToolService.Start()
 		return
 	end
 
+	RunService.Heartbeat:Connect(updateWoodLogs)
+
 	local npc = world:FindFirstChild(NPC_NAME)
 
 	if not npc then
 		warn(`StarterToolService did not find {NPC_NAME}. Add the NPC model to your Studio map to enable the starter axe interaction.`)
-		return
+	else
+		local head = npc:WaitForChild("Head")
+		local prompt = head:WaitForChild("StarterToolPrompt")
+
+		prompt.ActionText = "Get Axe"
+		prompt.Triggered:Connect(giveWoodenAxe)
 	end
 
-	local head = npc:WaitForChild("Head")
-	local prompt = head:WaitForChild("StarterToolPrompt")
 	local raft = world:FindFirstChild("Broken Starter Raft")
 
 	if not raft then
 		warn("StarterToolService did not find Broken Starter Raft. Raft repair, boarding, and upgrades are disabled until the raft model exists.")
-		return
+	else
+		local raftRepairZone = raft:WaitForChild("Repair Click Zone")
+		local raftPrompt = raftRepairZone:WaitForChild("RepairRaftPrompt")
+		local raftClickDetector = raftRepairZone:WaitForChild("RepairRaftClickDetector")
+		local boardZone = raft:WaitForChild("Board Click Zone")
+		local boardPrompt = boardZone:WaitForChild("BoardRaftPrompt")
+		local boardClickDetector = boardZone:WaitForChild("BoardRaftClickDetector")
+		local upgradeZone = raft:WaitForChild("Upgrade Click Zone")
+		local upgradePrompt = upgradeZone:WaitForChild("UpgradeRaftPrompt")
+		local upgradeClickDetector = upgradeZone:WaitForChild("UpgradeRaftClickDetector")
+
+		raftPrompt.Triggered:Connect(repairRaft)
+		raftClickDetector.MouseClick:Connect(repairRaft)
+		boardPrompt.Triggered:Connect(function(player)
+			boardRaft(player, raft)
+		end)
+		boardClickDetector.MouseClick:Connect(function(player)
+			boardRaft(player, raft)
+		end)
+		upgradePrompt.Triggered:Connect(upgradeRaft)
+		upgradeClickDetector.MouseClick:Connect(upgradeRaft)
+		startRaftDriving(raft)
 	end
-
-	local raftRepairZone = raft:WaitForChild("Repair Click Zone")
-	local raftPrompt = raftRepairZone:WaitForChild("RepairRaftPrompt")
-	local raftClickDetector = raftRepairZone:WaitForChild("RepairRaftClickDetector")
-	local boardZone = raft:WaitForChild("Board Click Zone")
-	local boardPrompt = boardZone:WaitForChild("BoardRaftPrompt")
-	local boardClickDetector = boardZone:WaitForChild("BoardRaftClickDetector")
-	local upgradeZone = raft:WaitForChild("Upgrade Click Zone")
-	local upgradePrompt = upgradeZone:WaitForChild("UpgradeRaftPrompt")
-	local upgradeClickDetector = upgradeZone:WaitForChild("UpgradeRaftClickDetector")
-
-	prompt.ActionText = "Get Axe"
-	prompt.Triggered:Connect(giveWoodenAxe)
-	raftPrompt.Triggered:Connect(repairRaft)
-	raftClickDetector.MouseClick:Connect(repairRaft)
-	boardPrompt.Triggered:Connect(function(player)
-		boardRaft(player, raft)
-	end)
-	boardClickDetector.MouseClick:Connect(function(player)
-		boardRaft(player, raft)
-	end)
-	upgradePrompt.Triggered:Connect(upgradeRaft)
-	upgradeClickDetector.MouseClick:Connect(upgradeRaft)
-	startRaftDriving(raft)
 
 	for _, child in world:GetChildren() do
 		if child:IsA("Model") and child:GetAttribute("IsHarvestableShrub") then

@@ -58,6 +58,8 @@ Keep these names/attributes for code hooks:
 - Shrub models: set attribute `IsHarvestableShrub = true`, with a PrimaryPart and optional `PlantFibreReward`.
 - Raft interaction parts/prompts can be moved with the raft, but keep their existing names.
 
+Choppable trees take 4 axe hits by default. Each hit shakes the tree, the final hit topples it, drops pickup logs, leaves a stump, and regrows the tree after a short delay.
+
 ## Mountain Island Terrain Template
 
 For a smoother world where islands are flatter sand/grass plateaus rising from underwater mountains, use:
