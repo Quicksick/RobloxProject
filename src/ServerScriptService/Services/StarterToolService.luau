@@ -18,9 +18,9 @@ local RAFT_SPEED_PER_LEVEL = 8
 local RAFT_TURN_SPEED = 70
 local TREE_MAX_HITS = 4
 local TREE_RESPAWN_SECONDS = 25
-local LOG_PICKUP_DISTANCE = 9
-local LOG_ATTRACTION_DISTANCE = 18
-local LOG_ATTRACTION_SPEED = 24
+local LOG_PICKUP_DISTANCE = 3.5
+local LOG_ATTRACTION_DISTANCE = 14
+local LOG_ATTRACTION_SPEED = 9
 
 local treeTemplatesByName = {}
 local activeLogs = {}
@@ -102,6 +102,20 @@ local function findFirstBasePart(instance: Instance)
 	end
 
 	return nil
+end
+
+local function findGroundY(position: Vector3, ignore: { Instance }?)
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Exclude
+	params.FilterDescendantsInstances = ignore or {}
+
+	local result = Workspace:Raycast(position + Vector3.new(0, 80, 0), Vector3.new(0, -220, 0), params)
+
+	if result then
+		return result.Position.Y
+	end
+
+	return position.Y
 end
 
 local function findNearestTree(position: Vector3)
@@ -211,7 +225,8 @@ local function makeStump(parent: Instance, tree: Model)
 	stump.Name = `{tree.Name} Stump`
 	stump.Anchored = true
 	stump.Size = Vector3.new(3, 2, 3)
-	stump.CFrame = CFrame.new(primaryPart.Position.X, primaryPart.Position.Y - 5, primaryPart.Position.Z)
+	local groundY = findGroundY(primaryPart.Position, { tree })
+	stump.CFrame = CFrame.new(primaryPart.Position.X, groundY + (stump.Size.Y / 2), primaryPart.Position.Z)
 	stump.Color = Color3.fromRGB(104, 68, 38)
 	stump.Material = Enum.Material.Wood
 	stump.Parent = parent
@@ -219,12 +234,13 @@ local function makeStump(parent: Instance, tree: Model)
 	return stump
 end
 
-local function spawnWoodLog(parent: Instance, position: Vector3, amount: number)
+local function spawnWoodLog(parent: Instance, position: Vector3, amount: number, ignore: { Instance }?)
+	local groundY = findGroundY(position, ignore)
 	local log = Instance.new("Part")
 	log.Name = "Wood Log"
 	log.Anchored = true
 	log.Size = Vector3.new(2.4, 1, 1)
-	log.CFrame = CFrame.new(position) * CFrame.Angles(0, math.rad(math.random(0, 180)), math.rad(90))
+	log.CFrame = CFrame.new(position.X, groundY + (log.Size.Y / 2), position.Z) * CFrame.Angles(0, math.rad(math.random(0, 180)), math.rad(90))
 	log.Color = Color3.fromRGB(126, 80, 43)
 	log.Material = Enum.Material.Wood
 	log:SetAttribute("WoodAmount", amount)
@@ -301,8 +317,8 @@ local function spawnWoodLogs(tree: Model, reward: number)
 
 	for index = 1, reward do
 		local angle = (math.pi * 2 / math.max(reward, 1)) * index
-		local offset = Vector3.new(math.cos(angle) * 4, 1.5, math.sin(angle) * 4)
-		spawnWoodLog(parent, primaryPart.Position + offset, 1)
+		local offset = Vector3.new(math.cos(angle) * math.random(3, 6), 0, math.sin(angle) * math.random(3, 6))
+		spawnWoodLog(parent, primaryPart.Position + offset, 1, { tree })
 	end
 end
 
@@ -337,7 +353,12 @@ local function toppleTree(tree: Model)
 	local reward = tree:GetAttribute("WoodReward") or 1
 	local stump = if parent then makeStump(parent, tree) else nil
 	local startPivot = tree:GetPivot()
-	local fallPivot = startPivot * CFrame.Angles(math.rad(78), 0, math.rad(math.random(-12, 12))) * CFrame.new(0, -3, -8)
+	local groundY = findGroundY(startPivot.Position, { tree })
+	local _, yaw = startPivot:ToOrientation()
+	local fallOffset = CFrame.Angles(0, yaw, 0) * Vector3.new(0, 0, -7)
+	local fallPivot = CFrame.new(startPivot.Position.X + fallOffset.X, groundY + 1.45, startPivot.Position.Z + fallOffset.Z)
+		* CFrame.Angles(0, yaw, 0)
+		* CFrame.Angles(math.rad(88), 0, math.rad(math.random(-12, 12)))
 	local pivotValue = Instance.new("CFrameValue")
 	pivotValue.Value = startPivot
 
