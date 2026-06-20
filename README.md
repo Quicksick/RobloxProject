@@ -60,13 +60,13 @@ Keep these names/attributes for code hooks:
 
 ## Mountain Island Terrain Template
 
-For a smoother world where islands are mountain peaks rising from the ocean floor, use:
+For a smoother world where islands are flatter sand/grass plateaus rising from underwater mountains, use:
 
 ```text
 tools/studio/generate_mountain_world.luau
 ```
 
-Run it in Roblox Studio's Command Bar while not in Play mode. It creates real Terrain in edit mode, so you can save/publish it normally. It also creates `Workspace.GeneratedWorldMarkers` to show suggested island centers; you can delete those markers after layout work.
+Run it in Roblox Studio's Command Bar while not in Play mode. It creates real Terrain in edit mode, so you can save/publish it normally. It uses broad underwater rock forms, sand shorelines, flatter grass tops, and water valleys for island definition. It also creates `Workspace.GeneratedWorldMarkers` to show suggested island centers; you can delete those markers after layout work.
 
 If Studio has trouble with the multi-line paste, use the single-line Command Bar version instead:
 
