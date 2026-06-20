@@ -37,6 +37,8 @@ Workspace
 
 `SharedConfig.Map.EnsureOceanWater` stays `true`, which rebuilds the deep Terrain water during Play without replacing your `Workspace.Map` folder. Terrain water is not copied when you copy `PiratePrototypeWorld`, so this keeps the ocean working while you edit the map by hand.
 
+Delete the default `Workspace.Baseplate` in Studio if you see it in edit mode. The code also removes `Workspace.Baseplate` during Play when `SharedConfig.Map.RemoveDefaultBaseplate` is `true`.
+
 To use the current generated prototype as a starting point:
 
 1. Temporarily set `UseGeneratedPrototypeWorld = true` in `src/ReplicatedStorage/SharedConfig.luau`.

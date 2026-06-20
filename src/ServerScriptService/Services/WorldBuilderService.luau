@@ -57,6 +57,18 @@ local function makeOcean(parent: Instance)
 	terrain:FillBlock(CFrame.new(SharedConfig.Map.OceanCenter), SharedConfig.Map.OceanSize, Enum.Material.Water)
 end
 
+local function removeDefaultBaseplate()
+	if not SharedConfig.Map.RemoveDefaultBaseplate then
+		return
+	end
+
+	local baseplate = Workspace:FindFirstChild("Baseplate")
+
+	if baseplate and baseplate:IsA("BasePart") then
+		baseplate:Destroy()
+	end
+end
+
 local function makeBrokenRaft(parent: Instance)
 	local raft = Instance.new("Model")
 	raft.Name = "Broken Starter Raft"
@@ -267,6 +279,8 @@ local function makeIsland(parent: Instance, name: string, position: Vector3, siz
 end
 
 function WorldBuilderService.Start()
+	removeDefaultBaseplate()
+
 	if not SharedConfig.Map.UseGeneratedPrototypeWorld then
 		if SharedConfig.Map.EnsureOceanWater then
 			makeOcean(Workspace)

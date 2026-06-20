@@ -7,6 +7,7 @@ local SharedConfig = {
 	Map = {
 		UseGeneratedPrototypeWorld = false,
 		EnsureOceanWater = true,
+		RemoveDefaultBaseplate = true,
 		GeneratedWorldName = "PiratePrototypeWorld",
 		StudioMapName = "Map",
 		ClearTerrainWhenGenerating = false,
