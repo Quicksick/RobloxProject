@@ -340,7 +340,7 @@ local function regrowTree(parent: Instance, treeName: string, stump: Instance?)
 	end)
 end
 
-local function toppleTree(tree: Model)
+local function toppleTree(tree: Model, chopperPosition: Vector3?)
 	if tree:GetAttribute("IsFalling") then
 		return
 	end
@@ -353,29 +353,48 @@ local function toppleTree(tree: Model)
 	local reward = tree:GetAttribute("WoodReward") or 1
 	local stump = if parent then makeStump(parent, tree) else nil
 	local startPivot = tree:GetPivot()
-	local groundY = findGroundY(startPivot.Position, { tree })
-	local _, yaw = startPivot:ToOrientation()
-	local fallOffset = CFrame.Angles(0, yaw, 0) * Vector3.new(0, 0, -7)
-	local fallPivot = CFrame.new(startPivot.Position.X + fallOffset.X, groundY + 1.45, startPivot.Position.Z + fallOffset.Z)
-		* CFrame.Angles(0, yaw, 0)
-		* CFrame.Angles(math.rad(88), 0, math.rad(math.random(-12, 12)))
-	local pivotValue = Instance.new("CFrameValue")
-	pivotValue.Value = startPivot
+	local primaryPart = tree.PrimaryPart or findFirstBasePart(tree)
+	local basePosition = primaryPart and primaryPart.Position or startPivot.Position
+	local groundY = findGroundY(basePosition, { tree })
+	local fallDirection = Vector3.new(0, 0, 1)
 
-	local connection = pivotValue.Changed:Connect(function(value)
+	if chopperPosition then
+		local awayFromChopper = Vector3.new(basePosition.X - chopperPosition.X, 0, basePosition.Z - chopperPosition.Z)
+
+		if awayFromChopper.Magnitude > 0.1 then
+			fallDirection = awayFromChopper.Unit
+		end
+	end
+
+	local fallYaw = math.atan2(fallDirection.X, fallDirection.Z)
+	local hinge = CFrame.new(basePosition.X, groundY, basePosition.Z) * CFrame.Angles(0, fallYaw, 0)
+	local wobble = math.rad(math.random(-4, 4))
+	local fallAngle = Instance.new("NumberValue")
+	fallAngle.Value = 0
+
+	local connection = fallAngle.Changed:Connect(function(value)
 		if tree.Parent then
-			tree:PivotTo(value)
+			local gravityDrop = math.sin(math.rad(value)) * -0.35
+			local hingeWithWeight = hinge + Vector3.new(0, gravityDrop, 0)
+			local pivot = hingeWithWeight * CFrame.Angles(math.rad(value), 0, wobble) * hinge:Inverse() * startPivot
+			tree:PivotTo(pivot)
 		end
 	end)
 
-	local tween = TweenService:Create(pivotValue, TweenInfo.new(0.75, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-		Value = fallPivot,
+	local fallTween = TweenService:Create(fallAngle, TweenInfo.new(1.05, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+		Value = 94,
+	})
+	local settleTween = TweenService:Create(fallAngle, TweenInfo.new(0.18, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+		Value = 88,
 	})
 
-	tween:Play()
-	tween.Completed:Connect(function()
+	fallTween:Play()
+	fallTween.Completed:Connect(function()
+		settleTween:Play()
+	end)
+	settleTween.Completed:Connect(function()
 		connection:Disconnect()
-		pivotValue:Destroy()
+		fallAngle:Destroy()
 		spawnWoodLogs(tree, reward)
 		setTreePartsVisible(tree, false, false)
 		tree.Parent = nil
@@ -418,7 +437,7 @@ local function chopTree(player: Player)
 	end
 
 	print(`{player.Name} chopped down {tree.Name}.`)
-	toppleTree(tree)
+	toppleTree(tree, rootPart.Position)
 end
 
 local function connectAxe(tool: Tool, player: Player)
