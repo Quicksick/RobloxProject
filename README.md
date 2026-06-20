@@ -58,6 +58,18 @@ Keep these names/attributes for code hooks:
 - Shrub models: set attribute `IsHarvestableShrub = true`, with a PrimaryPart and optional `PlantFibreReward`.
 - Raft interaction parts/prompts can be moved with the raft, but keep their existing names.
 
+## Mountain Island Terrain Template
+
+For a smoother world where islands are mountain peaks rising from the ocean floor, use:
+
+```text
+tools/studio/generate_mountain_world.luau
+```
+
+Run it in Roblox Studio's Command Bar while not in Play mode. It creates real Terrain in edit mode, so you can save/publish it normally. It also creates `Workspace.GeneratedWorldMarkers` to show suggested island centers; you can delete those markers after layout work.
+
+This script clears existing Terrain by default. It does not delete your `Workspace.Map` models, but run it before doing detailed Terrain sculpting.
+
 ## First Playable Goal
 
 Build toward this first loop:
